@@ -1,0 +1,46 @@
+﻿using AutoMapper;
+using Repository.Entities;
+using Service.Dto;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Service.Dto
+{
+    public class MyMapper: Profile
+    {
+        string path = Directory.GetCurrentDirectory() + "\\images\\";
+        public MyMapper()
+        {
+
+
+            CreateMap<Event, EventDto>();//.ForMember("Image", x => x.MapFrom(y => fromStringToByte(y.ImageUrl)));
+            CreateMap<EventDto, Event>();
+
+            CreateMap<User, UserDto>();
+            CreateMap<UserDto, User>();
+
+            CreateMap<Producer, ProducerDto>();
+            CreateMap<ProducerDto, Producer>();
+
+            CreateMap<Hall,HallDto>();
+            CreateMap<HallDto, Hall>();
+          
+
+            CreateMap<HallSeat, HallSeatDto>();
+            CreateMap<HallSeatDto, HallSeat>();
+
+
+            CreateMap<OrderDetail, OrderDetailDto>();
+            CreateMap<OrderDetailCreateDto, OrderDetail>().ForMember(dest=>dest.PriceAtPurchase,opt=>opt.Ignore());
+
+           
+        }
+        public byte[] fromStringToByte(string mypath)
+        {
+            return File.ReadAllBytes(path + mypath);
+        }
+    }
+}
