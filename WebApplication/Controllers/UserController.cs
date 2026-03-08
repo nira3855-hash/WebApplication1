@@ -19,7 +19,6 @@ namespace WebApplication1.Controllers
 
         public UserController(UserIService user)
         {
-            
             this.users = user;
         }
         // GET: CustomerController
