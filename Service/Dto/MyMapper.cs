@@ -19,7 +19,13 @@ namespace Service.Dto
             CreateMap<Event, EventDto>();//.ForMember("Image", x => x.MapFrom(y => fromStringToByte(y.ImageUrl)));
             CreateMap<EventDto, Event>();
 
+            CreateMap<UserLogin, User>();
+            CreateMap<User, UserLogin>();
             CreateMap<User, UserDto>();
+            CreateMap<User, UserRegisterDto>();
+            CreateMap<UserRegisterDto, User>();
+            CreateMap<UserRegisterDto, UserDto>();
+            CreateMap<UserDto, UserRegisterDto>();
             CreateMap<UserDto, User>();
 
             CreateMap<Producer, ProducerDto>();

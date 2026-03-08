@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Repository.Entities;
 using Service.Dto;
 using Service.Interface;
@@ -18,6 +19,7 @@ namespace WebApplication1.Controllers
         }
         // GET: api/<OrderDetailController>
         [HttpGet]
+        [Authorize(Roles = "0")]
         public List<OrderDetailDto> Get()
         {
             return orders.GetAll();
@@ -25,6 +27,7 @@ namespace WebApplication1.Controllers
 
         // GET api/<OrderDetailController>/5
         [HttpGet("{id}")]
+       
         public IActionResult Get(int id)
         {
             try

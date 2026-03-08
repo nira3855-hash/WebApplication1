@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
 using ConsoleApp1.Models;
 //using Common;
-//using Microsoft.AspNetCore.Authentication.JwtBearer;
-//using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using Repository;
 using Repository.Entities;
 using Repository.Interfaces;
@@ -30,39 +30,55 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 //סווגר עם אבטחה
-builder.Services.AddSwaggerGen(c =>
+builder.Services.AddSwaggerGen(options =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "securityLessonWebApi", Version = "v1" });
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    // הגדרת כפתור ה-Authorize ב-Swagger
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "Please enter your bearer token",
         Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Type = SecuritySchemeType.ApiKey
+        Description = "נא להזין את הטוקן שקיבלת מה-Login בלבד (ללא המילה Bearer)"
     });
 
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    // הגדרה שכל הבקשות ב-Swagger ידרשו את הטוקן אם הוגדר [Authorize]
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
             {
+                Reference = new OpenApiReference
                 {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
-                        }
-                    },
-                    new string[] {}
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
                 }
-            });
+            },
+            new string[] {}
+        }
+    });
 });
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+             .AddJwtBearer(option =>
+             option.TokenValidationParameters = new TokenValidationParameters
+             {
+                 ValidateIssuer = true,
+                 ValidateAudience = true,
+                 ValidateLifetime = true,
+                 ValidateIssuerSigningKey = true,
+                 ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                 ValidAudience = builder.Configuration["Jwt:Audience"],
+                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+
+             });
 //הגדרת התלויות 
 //addscoped -לכל גולש יוצר את המופע
 //addTrensient -בכל בקשה 
 //addsingelton -אחד לכולם
 builder.Services.AddScoped<IRepository<User>, UserRepository>();
-builder.Services.AddScoped<IService<UserDto>, UserService>();
+builder.Services.AddScoped<UserIService, UserService>();
 builder.Services.AddScoped<IRepository<Producer>, ProducerRepository>();
 builder.Services.AddScoped<IService<ProducerDto>, ProducerService>();
 builder.Services.AddScoped<IRepository<Hall>, HallRepository>();

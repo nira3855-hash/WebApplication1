@@ -6,26 +6,51 @@ using Repository.Interfaces;
 using Service.Interface;
 using Service.Dto;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Service.Services;
+using Microsoft.AspNetCore.Authorization;
 namespace WebApplication1.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly IService<UserDto> users;
-        public UserController(IService<UserDto> user)
+        private readonly UserIService users;
+        
+
+        public UserController(UserIService user)
         {
+            
             this.users = user;
         }
         // GET: CustomerController
         [HttpGet]
+        
         public List<UserDto> Get()
         {
             return users.GetAll();
 
         }
 
+       
 
+        [HttpPost("login")]
+         public IActionResult Login([FromBody] UserLogin loginDto)
+         {
+             // 1. קריאה ל-Service לביצוע האימות וקבלת הטוקן
+             var token = users.Login(loginDto);
+
+             // 2. בדיקה האם האימות נכשל
+             if (string.IsNullOrEmpty(token))
+             {
+                 // מחזירים 401 Unauthorized אם הפרטים שגויים
+                 return Unauthorized(new { message = "אימייל או סיסמה שגויים" });
+             }
+
+             // 3. החזרת הטוקן בתוך אובייקט JSON
+             // הלקוח (Frontend) יקבל: { "token": "eyJhbG..." }
+             return Ok(new { token = token });
+         }
+        
         // GET: CustomerController/Details/5
         [HttpGet("{id}")]
         public IActionResult Get(int id)
@@ -51,7 +76,7 @@ namespace WebApplication1.Controllers
 
         // POST api/<CustomerController>/5
         [HttpPost]
-        public UserDto Create(UserDto value)//האם זה לא צריך להיות fromBody?וגם למה זה create ולא post
+        public UserDto Create([FromBody] UserRegisterDto value)//האם זה לא צריך להיות fromBody?וגם למה זה create ולא post
         {
             return users.AddItem(value);
 

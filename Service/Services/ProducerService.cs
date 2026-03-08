@@ -33,6 +33,9 @@ namespace Service.Services
             var existingProducer = repository.GetById(dto.UserId);
             if (existingProducer != null) throw new Exception("User is already a producer");
 
+            // --- השלב החדש: עדכון ה-Role של המשתמש ---
+            userEntity.UserRole = 1; // נניח ש-1 מייצג Producer
+            users.UpdateItem(userEntity.Id, userEntity);
             // 3. יצירת האובייקט - שימי לב לשינוי כאן
             var newProducer = new Producer
             {
@@ -82,8 +85,7 @@ namespace Service.Services
                 {
                     // עדכון שדות המשתמש
                     userEntity.Name = dto.User.Name;
-                    userEntity.email = dto.User.email;
-                    userEntity.password = dto.User.password;
+                    userEntity.email = dto.User.email; 
 
                     users.UpdateItem(userEntity.Id, userEntity);
                 }
