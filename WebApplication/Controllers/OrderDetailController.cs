@@ -19,7 +19,7 @@ namespace WebApplication1.Controllers
         }
         // GET: api/<OrderDetailController>
         [HttpGet]
-        [Authorize(Roles = "0")]
+        [Authorize(Roles = "0,1")]
         public List<OrderDetailDto> Get()
         {
             return orders.GetAll();

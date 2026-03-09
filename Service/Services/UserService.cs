@@ -12,8 +12,8 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-
 namespace Service.Services
 {
     public class UserService : UserIService
@@ -27,14 +27,44 @@ namespace Service.Services
             this.mapper = mapper;
             this._config = _config;
         }
-        public UserDto AddItem(UserRegisterDto item)
-        {
-            item.password = BCrypt.Net.BCrypt.HashPassword(item.password);
-            
-            var userEntity = mapper.Map<User>(item);
 
+        public bool IsValidPassword(string password)
+        {
+            string pattern = @"^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$";
+            return Regex.IsMatch(password, pattern);
+        }
+        public bool IsValidEmail(string email)
+      {
+        string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+        return Regex.IsMatch(email, pattern);
+      }
+
+    //OK
+    public UserDto AddItem(UserRegisterDto item)
+        {
+            //בדיקת ערכי חובה
+            if (string.IsNullOrEmpty(item.email))
+                throw new Exception("Email is required");
+
+            if (string.IsNullOrEmpty(item.password))
+                throw new Exception("Password is required");
+            //בדיקת EMAIL תקין
+            if (!IsValidEmail(item.email))
+                throw new Exception("Invalid email format");
+            //בדיקת סיסמא  חזקה
+            if (!IsValidPassword(item.password))
+                throw new Exception("Password must contain letters, numbers and special character");
+            //בדיקה אם שם משתמש קיים כבר
+            var existingUser = repository.GetAll()
+                     .FirstOrDefault(u => u.email == item.email);
+            if (existingUser != null)
+                  throw new Exception("Email already exists");
+            //הצפנת סיסמא
+            item.password = BCrypt.Net.BCrypt.HashPassword(item.password);
+            //הכנסת UserRole
+            var userEntity = mapper.Map<User>(item);
             userEntity.UserRole = 0;
-   
+            // הכנסת משתמש
             var savedUser = repository.AddItem(userEntity);
             return mapper.Map<UserDto>(savedUser);
             
@@ -69,20 +99,25 @@ namespace Service.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     
-        
+        //OK
         public string Login(UserLogin item)
         {
-            // 1. שליפת המשתמש מה-Repository (באמצעות ה-Email)
+            //בדיקת ערכי חובה
+            if (string.IsNullOrEmpty(item.email))
+                throw new Exception("Email is required");
+
+            if (string.IsNullOrEmpty(item.password))
+                throw new Exception("Password is required");
+            //שליפת המשתמש מה-Repository (באמצעות ה-Email)
             var user = repository.GetAll().FirstOrDefault(u => u.email == item.email);
 
-            // 2. אימות הסיסמה בעזרת BCrypt
-            // אנחנו משווים את סיסמת הטקסט הנקי מה-DTO מול ה-Hash ששמור ב-DB
+            // אימות הסיסמה  
             if (user == null || !BCrypt.Net.BCrypt.Verify(item.password, user.password))
             {
-                return null; // או לזרוק Exception מסוג Unauthorized
+                throw new UnauthorizedAccessException("Invalid email or password");
             }
 
-            // 3. יצירת הטוקן (שימוש בפונקציה שכתבנו קודם)
+            //יצירת הטוקן 
             string token = GenerateJwtToken(user);
 
             return token;
@@ -90,19 +125,19 @@ namespace Service.Services
         
         public void DeleteItem(int id)
         {
+
             var user = repository.GetById(id);
 
             if (user == null)
                 throw new NotImplementedException();
             repository.DeleteItem(id);
         }
-
+        //לא חובה אפשר להוריד
         public List<UserDto> GetAll()
         {
-             
             return mapper.Map<List<User>, List<UserDto>>(repository.GetAll());
         }
-
+        //לא חובה אפשר להוריד
         public UserDto GetById(int id)
         {
             var user = repository.GetById(id);
@@ -115,13 +150,25 @@ namespace Service.Services
         {
             var user = repository.GetById(id);
             if (user == null)
-                throw new NotImplementedException();
-            
-            user.Name = dto.Name;
-            user.email = dto.email;
-            
-            repository.UpdateItem(id, user);
+                throw new Exception("User not found");
 
+            // עדכון רק אם השדה קיים ולא ריק
+            if (!string.IsNullOrEmpty(dto.Name))
+                user.Name = dto.Name;
+
+            if (!string.IsNullOrEmpty(dto.email))
+            {
+                //בדיקת EMAIL תקין
+                if (!IsValidEmail(dto.email))
+                    throw new Exception("Invalid email format");
+                //בדיקה אם שם משתמש קיים כבר
+                var existingUser = repository.GetAll()
+                         .FirstOrDefault(u => u.email == dto.email);
+                if (existingUser != null)
+                    throw new Exception("Email already exists");
+                user.email = dto.email;
+            }
+            repository.UpdateItem(id, user);
         }
     }
 }

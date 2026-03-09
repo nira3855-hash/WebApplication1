@@ -28,8 +28,11 @@ namespace Repository.Repositories
                 _context.Users.Remove(GetById(id));
                 _context.save();
             }
-
-            public List<User> GetAll()
+            public  User GetByEmail(string email)
+        {
+            return _context.Users.FirstOrDefault(x => x.email == email);
+        }
+        public List<User> GetAll()
             {
                 return _context.Users.ToList();
             }

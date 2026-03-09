@@ -10,9 +10,7 @@ using Repository.Interfaces;
 
 namespace Service.Services
 {
-
-
-    public class ExpireCartService : BackgroundService
+    public class ExpireCartService : BackgroundService//מחלקה עבור בדיקה כל 1 דקות ושחרור הדברים הנמצאים בסל קניות
     {
         private readonly IServiceProvider _serviceProvider;
 

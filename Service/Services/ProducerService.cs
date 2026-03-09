@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Service.Services
@@ -25,37 +26,53 @@ namespace Service.Services
         }
         public ProducerDto AddItem(ProducerDto dto)
         {
-            // 1. בדיקה: האם המשתמש קיים?
+            // האם המשתמש קיים
             var userEntity = users.GetById(dto.UserId);
-            if (userEntity == null) throw new Exception("User not found");
-
-            // 2. בדיקה: האם הוא כבר מפיק?
+            if (userEntity == null) throw new Exception("User not found lets sign like user first");
+            
+            // האם הוא כבר מפיקrepository.GetAll() 
             var existingProducer = repository.GetById(dto.UserId);
             if (existingProducer != null) throw new Exception("User is already a producer");
+            if(dto.CompanyName==null)
+                throw new Exception("CompanyName is must field");
 
-            // --- השלב החדש: עדכון ה-Role של המשתמש ---
-            userEntity.UserRole = 1; // נניח ש-1 מייצג Producer
+            // עדכון ROLE
+            userEntity.UserRole = 1; // 1 Producer מייצג 
             users.UpdateItem(userEntity.Id, userEntity);
-            // 3. יצירת האובייקט - שימי לב לשינוי כאן
+            //  יצירת האובייקט
             var newProducer = new Producer
             {
-                UserId = dto.UserId, // משתמשים ב-ID ישירות
+                UserId = dto.UserId, 
                 CompanyName = dto.CompanyName,
                 Bio = dto.Bio
-                // לא מוסיפים כאן את האובייקט User = userEntity!
-                // EF ידע לבד לעשות את הקישור לפי ה-UserId
+                //מקשר אוטומטי לUSER בUSERS
             };
 
-            // 4. שמירה ב-Repository
+            //  הוספה
             var savedProducer = repository.AddItem(newProducer);
-
-            // 5. החזרת התוצאה (הסרתי את ה-Return הכפול שהיה בסוף)
+           
             return mapper.Map<ProducerDto>(savedProducer);
         }
-
+        public bool IsValidEmail(string email)
+        {
+            string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            return Regex.IsMatch(email, pattern);
+        }
         public void DeleteItem(int id)
         {
-            throw new NotImplementedException();
+            var producer = repository.GetById(id);
+            if (producer == null)
+                throw new Exception("Producer not found");
+
+            // מחזירים את המשתמש להיות רגיל
+            var user = users.GetById(producer.UserId);
+            if (user != null)
+            {
+                user.UserRole = 0;
+                users.UpdateItem(user.Id, user);
+            }
+
+            repository.DeleteItem(id);
         }
 
         public List<ProducerDto> GetAll()
@@ -67,33 +84,63 @@ namespace Service.Services
         {
             var producer = repository.GetById(id);
             if (producer == null)
-                throw new NotImplementedException();
+               throw new Exception("User not exist");
+
             return mapper.Map<Producer, ProducerDto>(producer);
 
         }
 
         public void UpdateItem(int id, ProducerDto dto)
         {
+            // קבלת העצם
             var producer = repository.GetById(id);
             if (producer == null)
-                throw new NotImplementedException();
+                throw new Exception("Producer not found");
 
+            // עדכון פרטי המשתמש אם נשלח 
             if (dto.User != null)
             {
-                var userEntity = users.GetById(dto.UserId);
-                if (userEntity != null)
-                {
-                    // עדכון שדות המשתמש
-                    userEntity.Name = dto.User.Name;
-                    userEntity.email = dto.User.email; 
+                var userEntity = users.GetById(producer.UserId);
+                if (userEntity == null)
+                    throw new Exception("Associated user not found");
 
-                    users.UpdateItem(userEntity.Id, userEntity);
+                // עדכון שם רק אם נשלח ערך
+                if (!string.IsNullOrEmpty(dto.User.Name))
+                    userEntity.Name = dto.User.Name;
+
+                // עדכון אימייל רק אם נשלח ערך
+                if (!string.IsNullOrEmpty(dto.User.email))
+                {
+                    // בדיקת פורמט אימייל
+                    if (!IsValidEmail(dto.User.email))
+                        throw new Exception("Invalid email format");
+
+                    // בדיקה אם הEMAIL קיים כבר
+                    var existingUser = users.GetAll()
+                        .FirstOrDefault(u => u.email == dto.User.email && u.Id != userEntity.Id);
+
+                    if (existingUser != null)
+                        throw new Exception("Email already exists");
+
+                    userEntity.email = dto.User.email;
                 }
+
+               
+               
+                // שמירת המשתמש המעודכן
+                users.UpdateItem(userEntity.Id, userEntity);
             }
 
-            producer.Bio = dto.Bio;
-            producer.CompanyName = dto.CompanyName;
-             repository.UpdateItem(id, producer);
+            // עדכון שדות Producer עצמו
+            if (!string.IsNullOrEmpty(dto.CompanyName))
+                producer.CompanyName = dto.CompanyName;
+           
+            if (dto.Bio != null)
+                producer.Bio = dto.Bio;
+            
+
+            // עדכון
+            repository.UpdateItem(id, producer);
         }
     }
 }
