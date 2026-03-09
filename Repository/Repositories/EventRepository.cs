@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Repository.Repositories
 {
-    public class EventRepository : IRepository<Event>
+    public class EventRepository : EventIRepository
     {
         private readonly IContext _context;
         public EventRepository(IContext context)
@@ -53,5 +53,36 @@ namespace Repository.Repositories
             _context.save();
             return Event;
         }
+
+        public List<Event> GetByProducerId(int producerId)
+        {
+            return _context.Events.Where(e => e.ProducerID == producerId).ToList();
+        }
+
+        public List<Event> GetByDate(DateTime date)
+        {
+            return _context.Events.Where(e => e.EventDate.Date == date.Date).ToList();
+        }
+
+        public List<Event> GetUpcomingEvents()
+        {
+            return _context.Events.Where(e => e.EventDate > DateTime.Now).ToList();
+        }
+
+        public List<Event> Search(string searchTerm)
+        {
+            return _context.Events.Where(e => e.Title.Contains(searchTerm) || e.Describe.Contains(searchTerm)).ToList();
+        }
+
+        public List<Event> GetByLocation(string location)
+        {
+            return _context.Events.Where(e => e.Location.Equals(location, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
+        public List<Event> GetByHallId(int hallId)
+        {
+            return _context.Events.Where(e => e.HallID == hallId).ToList();
+        }
+
     }
 }

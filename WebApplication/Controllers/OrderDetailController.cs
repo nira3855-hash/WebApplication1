@@ -19,7 +19,7 @@ namespace WebApplication1.Controllers
         }
         // GET: api/<OrderDetailController>
         [HttpGet]
-        [Authorize(Roles = "0")]
+        [Authorize(Roles = "0")]//לא באמת צריך לבדוק את זה כי כל אחד יכול לראות את ההזמנות שלו 
         public List<OrderDetailDto> Get()
         {
             return orders.GetAll();

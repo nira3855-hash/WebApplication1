@@ -10,11 +10,10 @@ namespace Service.Interface
     public interface OrderDetailIService
     {
             OrderDetailDto CompleteOrderItem(OrderDetailCreateDto item);
-        OrderDetailDto AddToCartItem(OrderDetailCreateDto item);
-        void UpdateItem(int id, OrderDetailDto item);
+            OrderDetailDto AddToCartItem(OrderDetailCreateDto item);
+            void UpdateItem(int id, OrderDetailDto item);
             OrderDetailDto GetById(int id);
             List<OrderDetailDto> GetAll();
             void DeleteItem(int id);
-       
     }
 }
