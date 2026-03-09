@@ -11,13 +11,13 @@ namespace Service.Services
 {
     public class OrderDetailService : OrderDetailIService
     {
-        private readonly IRepository<Event> eventRepository;
+        private readonly EventIRepository eventRepository;
         private readonly IRepository<HallSeat> seatRepository;
         private readonly IRepository<OrderDetail> repository;
         private readonly IMapper mapper;
 
         public OrderDetailService(IRepository<OrderDetail> repository, IMapper mapper,
-                                  IRepository<Event> eventR, IRepository<HallSeat> SeatR)
+                                  EventIRepository eventR, IRepository<HallSeat> SeatR)
         {
             this.seatRepository = SeatR;
             this.eventRepository = eventR;

@@ -21,6 +21,6 @@ namespace Service.Interface
         List<Event> SearchEvents(string searchTerm);
         List<Event> GetEventsByLocation(string location);
         List<Event> GetEventsByHallId(int hallId);
-        void ValidateEvent(EventDto even);//לא יודעת אם צריך כי בכל מקרה זה private
+        //void ValidateEvent(EventDto even);//לא יודעת אם צריך כי בכל מקרה זה private
     }
 }

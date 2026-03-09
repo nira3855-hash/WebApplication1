@@ -87,8 +87,8 @@ builder.Services.AddHostedService<ExpireCartService>();
 
 builder.Services.AddScoped<IRepository<HallSeat>, HallSeatRepository>();
 builder.Services.AddScoped<IService<HallSeatDto>, HallSeatService>();
-builder.Services.AddScoped<IRepository<Event>, EventRepository>();
-builder.Services.AddScoped<IService<EventDto>, EventService>();
+builder.Services.AddScoped<EventIRepository, EventRepository>();
+builder.Services.AddScoped<EventIService, EventService>();
 builder.Services.AddScoped<IRepository<OrderDetail>, OrderDetailRepository>();
 builder.Services.AddScoped<OrderDetailIService, OrderDetailService>();
 
