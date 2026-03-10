@@ -1,64 +1,40 @@
-﻿using System.IO;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Repository.Entities;
-using Repository.Interfaces;
-using Service.Interface;
+﻿using Microsoft.AspNetCore.Mvc;
 using Service.Dto;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Service.Services;
-using Microsoft.AspNetCore.Authorization;
+using Service.Interface;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 namespace WebApplication1.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
     {
-        private readonly UserIService users;
-        
+        private readonly UserIService _users;
 
         public UserController(UserIService user)
         {
-            this.users = user;
+            _users = user;
         }
-        // GET: CustomerController
+
+        // GET: api/User
         [HttpGet]
-        
-        public List<UserDto> Get()
+        public async Task<ActionResult<List<UserDto>>> Get()
         {
-            return users.GetAll();
-
+            // מחזיר את כל המשתמשים
+            var list = await _users.GetAllAsync();
+            return Ok(list);
         }
 
-       
-
-        [HttpPost("login")]
-         public IActionResult Login([FromBody] UserLogin loginDto)
-         {
-             // 1. קריאה ל-Service לביצוע האימות וקבלת הטוקן
-             var token = users.Login(loginDto);
-
-             // 2. בדיקה האם האימות נכשל
-             if (string.IsNullOrEmpty(token))
-             {
-                 // מחזירים 401 Unauthorized אם הפרטים שגויים
-                 return Unauthorized(new { message = "אימייל או סיסמה שגויים" });
-             }
-
-             // 3. החזרת הטוקן בתוך אובייקט JSON
-             // הלקוח (Frontend) יקבל: { "token": "eyJhbG..." }
-             return Ok(new { token = token });
-         }
-        
-        // GET: CustomerController/Details/5
+        // GET: api/User/5
         [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
-            
             try
             {
-                var res=users.GetById(id);
-                return Ok(res);
+                var user = await _users.GetByIdAsync(id);
+                return Ok(user);
             }
             catch
             {
@@ -68,29 +44,46 @@ namespace WebApplication1.Controllers
                     Message = $"User with ID {id} was not found."
                 });
             }
-           
         }
 
-
-
-        // POST api/<CustomerController>/5
-        [HttpPost]
-        public UserDto Create([FromBody] UserRegisterDto value)//האם זה לא צריך להיות fromBody?וגם למה זה create ולא post
+        // POST api/User/login
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] UserLogin loginDto)
         {
-            return users.AddItem(value);
+            // קריאה ל-Service לביצוע האימות וקבלת הטוקן
+            var token = await _users.LoginAsync(loginDto);
 
+            // בדיקה האם האימות נכשל
+            if (string.IsNullOrEmpty(token))
+            {
+                // מחזירים 401 Unauthorized אם הפרטים שגויים
+                return Unauthorized(new { message = "אימייל או סיסמה שגויים" });
+            }
+
+            // החזרת הטוקן בתוך אובייקט JSON
+            return Ok(new { token = token });
         }
 
+        // POST api/User
+        [HttpPost]
+        public async Task<UserDto> Create([FromBody] UserRegisterDto value)
+        {
+            // הוספת משתמש חדש
+            // הערה: צריך FromBody כדי שה־DTO יקבל את המידע מה-BODY של הבקשה
+            // הערה נוספת: השם Create הוא לא חובה, POST בעצם מיועד ליצירה
+            return await _users.AddItemAsync(value);
+        }
 
-        // PUT api/<CustomerController>/5
+        // PUT api/User/5
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] UserDto value)
+        public async Task<IActionResult> Put(int id, [FromBody] UserDto value)
         {
             try
             {
-               users.UpdateItem(id, value);
+                // עדכון משתמש קיים
+                await _users.UpdateItemAsync(id, value);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return NotFound(new
                 {
@@ -99,28 +92,29 @@ namespace WebApplication1.Controllers
                 });
             }
 
-            // 3. רק אם נמצא ועודכן, מחזירים Ok
+            // רק אם נמצא ועודכן מחזירים Ok
             return Ok();
         }
-        
 
-        // DELETE api/<CustomerController>/5
+        // DELETE api/User/5
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            try {
-                users.DeleteItem(id);
+            try
+            {
+                // מחיקת משתמש
+                await _users.DeleteItemAsync(id);
             }
-            catch(Exception ex)
+            catch (Exception)
             {
                 return NotFound(new
                 {
-                    ErrorCode = 404,//למה אין massage פה? וכך בכול Controllers האחרים?
+                    ErrorCode = 404,
+                    Message = $"User with ID {id} was not found." // הוספתי הודעת שגיאה כמו בשאר ה-Controllers
                 });
             }
+
             return Ok();
         }
-
-       
     }
 }

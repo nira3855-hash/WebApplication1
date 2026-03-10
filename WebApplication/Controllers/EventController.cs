@@ -2,8 +2,9 @@
 using Repository.Entities;
 using Service.Dto;
 using Service.Interface;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace WebApplication1.Controllers
 {
@@ -11,25 +12,29 @@ namespace WebApplication1.Controllers
     [ApiController]
     public class EventController : ControllerBase
     {
-        private readonly IService<EventDto> events;
-        public EventController(IService<EventDto> even)
+        private readonly EventIService events;
+
+        public EventController(EventIService even)
         {
             this.events = even;
         }
-        // GET: api/<EventController>
+
+        // GET: api/Event
         [HttpGet]
-        public List<EventDto> Get()
+        public async Task<List<EventDto>> Get()
         {
-            return events.GetAll();
+            // מחזיר את כל האירועים (אסינכרוני)
+            return await events.GetAllEventsAsync();
         }
 
-        // GET api/<EventController>/5
+        // GET api/Event/5
         [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
             try
             {
-                var res = events.GetById(id);
+                // מחזיר אירוע לפי ID (אסינכרוני)
+                var res = await events.GetEventByIdAsync(id);
                 return Ok(res);
             }
             catch
@@ -42,22 +47,24 @@ namespace WebApplication1.Controllers
             }
         }
 
-        // POST api/<EventController>
+        // POST api/Event
         [HttpPost]
-        public EventDto Post([FromBody] EventDto value)
+        public async Task<EventDto> Post([FromBody] EventDto value)
         {
-            return events.AddItem(value);
+            // מוסיף אירוע חדש (אסינכרוני)
+            return await events.AddEventAsync(value);
         }
 
-        // PUT api/<EventController>/5
+        // PUT api/Event/5
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] EventDto value)
+        public async Task<IActionResult> Put(int id, [FromBody] EventDto value)
         {
             try
             {
-                events.UpdateItem(id, value);
+                // מעדכן אירוע קיים (אסינכרוני)
+                await events.UpdateEventAsync(id, value);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return NotFound(new
                 {
@@ -66,26 +73,76 @@ namespace WebApplication1.Controllers
                 });
             }
 
-            // 3. רק אם נמצא ועודכן, מחזירים Ok
+            // רק אם נמצא ועודכן, מחזירים Ok
             return Ok();
         }
 
-        // DELETE api/<EventController>/5
+        // DELETE api/Event/5
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                events.DeleteItem(id);
+                // מוחק אירוע לפי ID (אסינכרוני)
+                await events.DeleteEventAsync(id);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return NotFound(new
                 {
                     ErrorCode = 404,
+                    Message = $"Event with ID {id} was not found."
                 });
             }
             return Ok();
+        }
+
+        // GET api/Event/producer/5
+        [HttpGet("producer/{producerId}")]
+        public async Task<List<Event>> GetByProducer(int producerId)
+        {
+            // מחזיר את כל האירועים של מפיק מסוים
+            return await events.GetEventsByProducerIdAsync(producerId);
+        }
+
+        // GET api/Event/date/2026-03-10
+        [HttpGet("date/{date}")]
+        public async Task<List<Event>> GetByDate(DateTime date)
+        {
+            // מחזיר את כל האירועים בתאריך מסוים
+            return await events.GetEventsByDateAsync(date);
+        }
+
+        // GET api/Event/upcoming
+        [HttpGet("upcoming")]
+        public async Task<List<Event>> GetUpcoming()
+        {
+            // מחזיר את כל האירועים הקרבים
+            return await events.GetUpcomingEventsAsync();
+        }
+
+        // GET api/Event/search?term=concert
+        [HttpGet("search")]
+        public async Task<List<Event>> Search([FromQuery] string term)
+        {
+            // מחפש אירועים לפי מחרוזת חיפוש
+            return await events.SearchEventsAsync(term);
+        }
+
+        // GET api/Event/location?loc=TelAviv
+        [HttpGet("location")]
+        public async Task<List<Event>> GetByLocation([FromQuery] string loc)
+        {
+            // מחזיר אירועים לפי מיקום
+            return await events.GetEventsByLocationAsync(loc);
+        }
+
+        // GET api/Event/hall/5
+        [HttpGet("hall/{hallId}")]
+        public async Task<List<Event>> GetByHall(int hallId)
+        {
+            // מחזיר אירועים לפי אולם
+            return await events.GetEventsByHallIdAsync(hallId);
         }
     }
 }

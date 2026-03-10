@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Repository.Entities;
 using Service.Dto;
-using Service.Interface;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using Service.Services;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace WebApplication1.Controllers
 {
@@ -11,28 +11,31 @@ namespace WebApplication1.Controllers
     [ApiController]
     public class HallSeatController : ControllerBase
     {
-        private readonly IService<HallSeatDto> hallSeat;
-        public HallSeatController(IService<HallSeatDto> hallSeat)
+        private readonly HallSeatService _hallSeatService;
+
+        public HallSeatController(HallSeatService hallSeatService)
         {
-            this.hallSeat = hallSeat;
+            _hallSeatService = hallSeatService;
         }
-        // GET: api/<HallSeatController>
+
+        // GET: api/HallSeat
         [HttpGet]
-        public List<HallSeatDto> Get()
+        public async Task<ActionResult<List<HallSeatDto>>> Get()
         {
-            return hallSeat.GetAll();
+            var list = await _hallSeatService.GetAllAsync();
+            return Ok(list);
         }
 
-        // GET api/<HallSeatController>/5
+        // GET api/HallSeat/5
         [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
             try
             {
-                var res = hallSeat.GetById(id);
-                return Ok(res);
+                var item = await _hallSeatService.GetByIdAsync(id);
+                return Ok(item);
             }
-            catch
+            catch (NotImplementedException)
             {
                 return NotFound(new
                 {
@@ -42,22 +45,24 @@ namespace WebApplication1.Controllers
             }
         }
 
-        // POST api/<HallSeatController>
+        // POST api/HallSeat
         [HttpPost]
-        public HallSeatDto Post([FromBody] HallSeatDto value)
+        public async Task<ActionResult<HallSeatDto>> Post([FromBody] HallSeatDto value)
         {
-            return hallSeat.AddItem(value);
+            var added = await _hallSeatService.AddItemAsync(value);
+            return CreatedAtAction(nameof(Get), new { id = added.Id }, added);
         }
 
-        // PUT api/<HallSeatController>/5
+        // PUT api/HallSeat/5
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] HallSeatDto value)
+        public async Task<IActionResult> Put(int id, [FromBody] HallSeatDto value)
         {
             try
             {
-                hallSeat.UpdateItem(id, value);
+                await _hallSeatService.UpdateItemAsync(id, value);
+                return Ok();
             }
-            catch (Exception ex)
+            catch (NotImplementedException)
             {
                 return NotFound(new
                 {
@@ -65,27 +70,25 @@ namespace WebApplication1.Controllers
                     Message = $"HallSeat with ID {id} was not found."
                 });
             }
-
-            // 3. רק אם נמצא ועודכן, מחזירים Ok
-            return Ok();
         }
 
-        // DELETE api/<HallSeatController>/5
+        // DELETE api/HallSeat/5
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                hallSeat.DeleteItem(id);
+                await _hallSeatService.DeleteItemAsync(id);
+                return Ok();
             }
-            catch (Exception ex)
+            catch (NotImplementedException)
             {
                 return NotFound(new
                 {
-                    ErrorCode = 404,//למה אין massage פה? וכך בכול Controllers האחרים?
+                    ErrorCode = 404,
+                    Message = $"HallSeat with ID {id} was not found."
                 });
             }
-            return Ok();
         }
     }
 }

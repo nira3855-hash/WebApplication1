@@ -14,6 +14,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+
 namespace Service.Services
 {
     public class UserService : UserIService
@@ -21,6 +22,7 @@ namespace Service.Services
         private readonly IRepository<User> repository;
         private readonly IMapper mapper;
         private readonly IConfiguration _config;
+
         public UserService(IRepository<User> repository, IMapper mapper, IConfiguration _config)
         {
             this.repository = repository;
@@ -33,14 +35,15 @@ namespace Service.Services
             string pattern = @"^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$";
             return Regex.IsMatch(password, pattern);
         }
-        public bool IsValidEmail(string email)
-      {
-        string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-        return Regex.IsMatch(email, pattern);
-      }
 
-    //OK
-    public UserDto AddItem(UserRegisterDto item)
+        public bool IsValidEmail(string email)
+        {
+            string pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+            return Regex.IsMatch(email, pattern);
+        }
+
+        //OK
+        public async Task<UserDto> AddItemAsync(UserRegisterDto item)
         {
             //בדיקת ערכי חובה
             if (string.IsNullOrEmpty(item.email))
@@ -48,27 +51,33 @@ namespace Service.Services
 
             if (string.IsNullOrEmpty(item.password))
                 throw new Exception("Password is required");
+
             //בדיקת EMAIL תקין
             if (!IsValidEmail(item.email))
                 throw new Exception("Invalid email format");
-            //בדיקת סיסמא  חזקה
+
+            //בדיקת סיסמא חזקה
             if (!IsValidPassword(item.password))
                 throw new Exception("Password must contain letters, numbers and special character");
+
             //בדיקה אם שם משתמש קיים כבר
-            var existingUser = repository.GetAll()
+            var existingUser = (await repository.GetAllAsync())
                      .FirstOrDefault(u => u.email == item.email);
             if (existingUser != null)
-                  throw new Exception("Email already exists");
+                throw new Exception("Email already exists");
+
             //הצפנת סיסמא
             item.password = BCrypt.Net.BCrypt.HashPassword(item.password);
+
             //הכנסת UserRole
             var userEntity = mapper.Map<User>(item);
             userEntity.UserRole = 0;
+
             // הכנסת משתמש
-            var savedUser = repository.AddItem(userEntity);
+            var savedUser = await repository.AddItemAsync(userEntity);
             return mapper.Map<UserDto>(savedUser);
-            
         }
+
         private string GenerateJwtToken(User user)
         {
             // 1. הגדרת ה-Key וה-Credentials (חתימה)
@@ -80,12 +89,12 @@ namespace Service.Services
             // אלו הפרטים שיהיו מוצפנים בתוך הטוקן ונוכל לשלוף אותם בכל בקשה
             var claims = new[]
             {
-        new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-        new Claim(JwtRegisteredClaimNames.Email, user.email),
-        new Claim(ClaimTypes.Name, user.Name),
-        new Claim(ClaimTypes.Role, user.UserRole.ToString()), // חשוב להרשאות!
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // מזהה ייחודי לטוקן
-    };
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+                new Claim(JwtRegisteredClaimNames.Email, user.email),
+                new Claim(ClaimTypes.Name, user.Name),
+                new Claim(ClaimTypes.Role, user.UserRole.ToString()), // חשוב להרשאות!
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // מזהה ייחודי לטוקן
+            };
 
             // 3. יצירת אובייקט הטוקן
             var token = new JwtSecurityToken(
@@ -98,9 +107,9 @@ namespace Service.Services
             // 4. המרת אובייקט הטוקן למחרוזת (String)
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-    
+
         //OK
-        public string Login(UserLogin item)
+        public async Task<string> LoginAsync(UserLogin item)
         {
             //בדיקת ערכי חובה
             if (string.IsNullOrEmpty(item.email))
@@ -108,47 +117,46 @@ namespace Service.Services
 
             if (string.IsNullOrEmpty(item.password))
                 throw new Exception("Password is required");
+
             //שליפת המשתמש מה-Repository (באמצעות ה-Email)
-            var user = repository.GetAll().FirstOrDefault(u => u.email == item.email);
+            var user = (await repository.GetAllAsync()).FirstOrDefault(u => u.email == item.email);
 
             // אימות הסיסמה  
             if (user == null || !BCrypt.Net.BCrypt.Verify(item.password, user.password))
-            {
                 throw new UnauthorizedAccessException("Invalid email or password");
-            }
 
             //יצירת הטוקן 
             string token = GenerateJwtToken(user);
-
             return token;
         }
-        
-        public void DeleteItem(int id)
+
+        public async Task DeleteItemAsync(int id)
         {
-
-            var user = repository.GetById(id);
-
+            var user = await repository.GetByIdAsync(id);
             if (user == null)
                 throw new NotImplementedException();
-            repository.DeleteItem(id);
+            await repository.DeleteItemAsync(id);
         }
+
         //לא חובה אפשר להוריד
-        public List<UserDto> GetAll()
+        public async Task<List<UserDto>> GetAllAsync()
         {
-            return mapper.Map<List<User>, List<UserDto>>(repository.GetAll());
+            var usersList = await repository.GetAllAsync();
+            return mapper.Map<List<User>, List<UserDto>>(usersList);
         }
+
         //לא חובה אפשר להוריד
-        public UserDto GetById(int id)
+        public async Task<UserDto> GetByIdAsync(int id)
         {
-            var user = repository.GetById(id);
-            if(user==null)
+            var user = await repository.GetByIdAsync(id);
+            if (user == null)
                 throw new NotImplementedException();
             return mapper.Map<User, UserDto>(user);
         }
 
-        public void UpdateItem(int id, UserDto dto)
+        public async Task UpdateItemAsync(int id, UserDto dto)
         {
-            var user = repository.GetById(id);
+            var user = await repository.GetByIdAsync(id);
             if (user == null)
                 throw new Exception("User not found");
 
@@ -161,14 +169,17 @@ namespace Service.Services
                 //בדיקת EMAIL תקין
                 if (!IsValidEmail(dto.email))
                     throw new Exception("Invalid email format");
+
                 //בדיקה אם שם משתמש קיים כבר
-                var existingUser = repository.GetAll()
+                var existingUser = (await repository.GetAllAsync())
                          .FirstOrDefault(u => u.email == dto.email);
                 if (existingUser != null)
                     throw new Exception("Email already exists");
+
                 user.email = dto.email;
             }
-            repository.UpdateItem(id, user);
+
+            await repository.UpdateItemAsync(id, user);
         }
     }
 }

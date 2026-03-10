@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Repository.Entities;
 using Service.Dto;
 using Service.Interface;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace WebApplication1.Controllers
 {
@@ -12,24 +12,26 @@ namespace WebApplication1.Controllers
     public class HallController : ControllerBase
     {
         private readonly IService<HallDto> halls;
+
         public HallController(IService<HallDto> hall)
         {
             this.halls = hall;
         }
+
         // GET: api/<HallController>
         [HttpGet]
-        public List<HallDto> Get()
+        public async Task<List<HallDto>> Get()
         {
-            return halls.GetAll();
+            return await halls.GetAllAsync(); // קריאה אסינכרונית
         }
 
         // GET api/<HallController>/5
         [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
             try
             {
-                var res = halls.GetById(id);
+                var res = await halls.GetByIdAsync(id); // קריאה אסינכרונית
                 return Ok(res);
             }
             catch
@@ -44,20 +46,20 @@ namespace WebApplication1.Controllers
 
         // POST api/<HallController>
         [HttpPost]
-        public HallDto Post([FromBody] HallDto value)
+        public async Task<HallDto> Post([FromBody] HallDto value)
         {
-            return halls.AddItem(value);
+            return await halls.AddItemAsync(value); // קריאה אסינכרונית
         }
 
         // PUT api/<HallController>/5
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] HallDto value)
+        public async Task<IActionResult> Put(int id, [FromBody] HallDto value)
         {
             try
             {
-                halls.UpdateItem(id, value);
+                await halls.UpdateItemAsync(id, value); // קריאה אסינכרונית
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return NotFound(new
                 {
@@ -66,19 +68,19 @@ namespace WebApplication1.Controllers
                 });
             }
 
-            // 3. רק אם נמצא ועודכן, מחזירים Ok
+            // רק אם נמצא ועודכן, מחזירים Ok
             return Ok();
         }
 
         // DELETE api/<HallController>/5
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                halls.DeleteItem(id);
+                await halls.DeleteItemAsync(id); // קריאה אסינכרונית
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return NotFound(new
                 {

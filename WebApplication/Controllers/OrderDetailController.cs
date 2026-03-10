@@ -1,10 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Repository.Entities;
 using Service.Dto;
+using Service.Services;
 using Service.Interface;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace WebApplication1.Controllers
 {
@@ -12,28 +13,30 @@ namespace WebApplication1.Controllers
     [ApiController]
     public class OrderDetailController : ControllerBase
     {
-        private readonly OrderDetailIService orders;
-        public OrderDetailController(OrderDetailIService order)
+        private readonly OrderDetailIService _orders;
+
+        public OrderDetailController(OrderDetailIService orders)
         {
-            this.orders = order;
-        }
-        // GET: api/<OrderDetailController>
-        [HttpGet]
-        [Authorize(Roles = "0,1")]
-        public List<OrderDetailDto> Get()
-        {
-            return orders.GetAll();
+            _orders = orders;
         }
 
-        // GET api/<OrderDetailController>/5
+        // GET: api/OrderDetail
+        [HttpGet]
+        [Authorize(Roles = "0,1")]
+        public async Task<ActionResult<List<OrderDetailDto>>> Get()
+        {
+            var list = await _orders.GetAllAsync();
+            return Ok(list);
+        }
+
+        // GET api/OrderDetail/5
         [HttpGet("{id}")]
-       
-        public IActionResult Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
             try
             {
-                var res = orders.GetById(id);
-                return Ok(res);
+                var order = await _orders.GetByIdAsync(id);
+                return Ok(order);
             }
             catch
             {
@@ -44,31 +47,31 @@ namespace WebApplication1.Controllers
                 });
             }
         }
+
         [HttpPost("add-to-cart")]
-        public IActionResult AddToCart(OrderDetailCreateDto dto)
+        public async Task<IActionResult> AddToCart(OrderDetailCreateDto dto)
         {
-            orders.AddToCartItem(dto);
+            await _orders.AddToCartItemAsync(dto);
             return Ok();
         }
 
         [HttpPost("complete")]
-        public IActionResult CompleteOrder(OrderDetailCreateDto dto)
+        public async Task<IActionResult> CompleteOrder(OrderDetailCreateDto dto)
         {
-            orders.CompleteOrderItem(dto);
+            await _orders.CompleteOrderItemAsync(dto);
             return Ok();
         }
-       
-       
 
-        // PUT api/<OrderDetailController>/5
+        // PUT api/OrderDetail/5
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] OrderDetailDto value)
+        public async Task<IActionResult> Put(int id, [FromBody] OrderDetailDto value)
         {
             try
             {
-                orders.UpdateItem(id, value);
+                await _orders.UpdateItemAsync(id, value);
+                return Ok();
             }
-            catch (Exception ex)
+            catch
             {
                 return NotFound(new
                 {
@@ -76,27 +79,25 @@ namespace WebApplication1.Controllers
                     Message = $"Order with ID {id} was not found."
                 });
             }
-
-            //  רק אם נמצא ועודכן מחזירים Ok
-            return Ok();
         }
 
-        // DELETE api/<OrderDetailController>/5
+        // DELETE api/OrderDetail/5
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                orders.DeleteItem(id);
+                await _orders.DeleteItemAsync(id);
+                return Ok();
             }
-            catch (Exception ex)
+            catch
             {
                 return NotFound(new
                 {
                     ErrorCode = 404,
+                    Message = $"Order with ID {id} was not found."
                 });
             }
-            return Ok();
         }
     }
 }

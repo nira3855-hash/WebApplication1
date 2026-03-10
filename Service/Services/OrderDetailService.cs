@@ -6,6 +6,7 @@ using Service.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Service.Services
 {
@@ -16,18 +17,21 @@ namespace Service.Services
         private readonly IRepository<OrderDetail> repository;
         private readonly IMapper mapper;
 
-        public OrderDetailService(IRepository<OrderDetail> repository, IMapper mapper,
-                                  EventIRepository eventR, IRepository<HallSeat> SeatR)
+        public OrderDetailService(
+            IRepository<OrderDetail> repository,
+            IMapper mapper,
+            EventIRepository eventR,
+            IRepository<HallSeat> seatR)
         {
-            this.seatRepository = SeatR;
+            this.seatRepository = seatR;
             this.eventRepository = eventR;
             this.repository = repository;
             this.mapper = mapper;
         }
 
-        public OrderDetailDto AddToCartItem(OrderDetailCreateDto item)
+        public async Task<OrderDetailDto> AddToCartItemAsync(OrderDetailCreateDto item)
         {
-            var exists = repository.GetAll()
+            var exists = (await repository.GetAllAsync())
                 .FirstOrDefault(o => o.EventID == item.EventID
                                   && o.HallSeatID == item.HallSeatID
                                   && o.Status != OrderStatus.Cancelled);
@@ -35,21 +39,20 @@ namespace Service.Services
             if (exists != null)
                 throw new Exception("Seat is already reserved or sold");
 
-            double price = CalculatePrice(item.EventID, item.HallSeatID);
+            double price = await CalculatePriceAsync(item.EventID, item.HallSeatID);
 
             var entity = mapper.Map<OrderDetail>(item);
             entity.PriceAtPurchase = price;
             entity.Status = OrderStatus.Reserved;
             entity.SelectAt = DateTime.Now;
 
-            var saved = repository.AddItem(entity);
+            var saved = await repository.AddItemAsync(entity);
             return mapper.Map<OrderDetailDto>(saved);
         }
 
-        public OrderDetailDto CompleteOrderItem(OrderDetailCreateDto item)
+        public async Task<OrderDetailDto> CompleteOrderItemAsync(OrderDetailCreateDto item)
         {
-           
-            var exists = repository.GetAll()
+            var exists = (await repository.GetAllAsync())
                 .FirstOrDefault(o => o.EventID == item.EventID
                                   && o.HallSeatID == item.HallSeatID
                                   && o.Status != OrderStatus.Cancelled);
@@ -57,30 +60,30 @@ namespace Service.Services
             if (exists != null)
                 throw new Exception("Seat is already reserved or sold");
 
-            double price = CalculatePrice(item.EventID, item.HallSeatID);
+            double price = await CalculatePriceAsync(item.EventID, item.HallSeatID);
 
             var entity = mapper.Map<OrderDetail>(item);
             entity.PriceAtPurchase = price;
             entity.Status = OrderStatus.Sold;
             entity.SelectAt = DateTime.Now;
 
-            var saved = repository.AddItem(entity);
+            var saved = await repository.AddItemAsync(entity);
             return mapper.Map<OrderDetailDto>(saved);
         }
 
-        public void DeleteItem(int id)
+        public async Task DeleteItemAsync(int id)
         {
-            var order = repository.GetById(id);
+            var order = await repository.GetByIdAsync(id);
             if (order == null)
                 throw new NotImplementedException();
 
-            repository.DeleteItem(id);
+            await repository.DeleteItemAsync(id);
         }
 
-        public double CalculatePrice(int eventId, int seatId)
+        public async Task<double> CalculatePriceAsync(int eventId, int seatId)
         {
-            var eventObj = eventRepository.GetById(eventId);
-            var seatObj = seatRepository.GetById(seatId);
+            var eventObj = await eventRepository.GetByIdAsync(eventId);
+            var seatObj = await seatRepository.GetByIdAsync(seatId);
 
             if (eventObj == null || seatObj == null)
                 throw new Exception("Event or Seat not found");
@@ -88,33 +91,33 @@ namespace Service.Services
             return eventObj.BasePrice + seatObj.AddPrice;
         }
 
-        public List<OrderDetailDto> GetAll()
+        public async Task<List<OrderDetailDto>> GetAllAsync()
         {
-            return mapper.Map<List<OrderDetail>, List<OrderDetailDto>>(repository.GetAll());
+            var list = await repository.GetAllAsync();
+            return mapper.Map<List<OrderDetail>, List<OrderDetailDto>>(list);
         }
 
-        public void CancelReservation(int userId, int orderDetailId)//מחיקה איבר מהסל
+        public async Task CancelReservationAsync(int userId, int orderDetailId)
         {
-            var item = repository.GetById(orderDetailId);
+            var item = await repository.GetByIdAsync(orderDetailId);
             if (item.UserID != userId || item.Status != OrderStatus.Reserved)
                 throw new Exception("Cannot cancel");
 
-            
-            repository.DeleteItem(orderDetailId);
+            await repository.DeleteItemAsync(orderDetailId);
         }
 
-        public OrderDetailDto GetById(int id)
+        public async Task<OrderDetailDto> GetByIdAsync(int id)
         {
-            var order = repository.GetById(id);
+            var order = await repository.GetByIdAsync(id);
             if (order == null)
                 throw new NotImplementedException();
 
             return mapper.Map<OrderDetail, OrderDetailDto>(order);
         }
 
-        public void UpdateItem(int id, OrderDetailDto item)
+        public async Task UpdateItemAsync(int id, OrderDetailDto item)
         {
-            var order = repository.GetById(id);
+            var order = await repository.GetByIdAsync(id);
             if (order == null)
                 throw new NotImplementedException();
 
@@ -122,7 +125,7 @@ namespace Service.Services
             order.Status = item.Status;
             order.HallSeatID = item.HallSeatID;
 
-            repository.UpdateItem(id, order);
+            await repository.UpdateItemAsync(id, order);
         }
     }
 }

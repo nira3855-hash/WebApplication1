@@ -5,61 +5,64 @@ using Service.Dto;
 using Service.Interface;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Service.Services
 {
-    public class HallSeatService: IService<HallSeatDto>
+    public class HallSeatService : IService<HallSeatDto>
     {
         private readonly IRepository<HallSeat> repository;
         private readonly IMapper mapper;
+
         public HallSeatService(IRepository<HallSeat> repository, IMapper mapper)
         {
             this.repository = repository;
             this.mapper = mapper;
         }
-        public HallSeatDto AddItem(HallSeatDto item)
+
+        public async Task<HallSeatDto> AddItemAsync(HallSeatDto item)
         {
-            return mapper.Map<HallSeat, HallSeatDto>(repository.AddItem(mapper.Map<HallSeatDto, HallSeat>(item)));
+            var entity = mapper.Map<HallSeatDto, HallSeat>(item);
+            var added = await repository.AddItemAsync(entity);
+            return mapper.Map<HallSeat, HallSeatDto>(added);
         }
 
-        public void DeleteItem(int id)
+        public async Task DeleteItemAsync(int id)
         {
-            var hallSeat = repository.GetById(id);
-
+            var hallSeat = await repository.GetByIdAsync(id);
             if (hallSeat == null)
                 throw new NotImplementedException();
-            repository.DeleteItem(id);
+
+            await repository.DeleteItemAsync(id);
         }
 
-        public List<HallSeatDto> GetAll()
+        public async Task<List<HallSeatDto>> GetAllAsync()
         {
-            return mapper.Map<List<HallSeat>, List<HallSeatDto>>(repository.GetAll());
+            var list = await repository.GetAllAsync();
+            return mapper.Map<List<HallSeat>, List<HallSeatDto>>(list);
         }
 
-        public HallSeatDto GetById(int id)
+        public async Task<HallSeatDto> GetByIdAsync(int id)
         {
-            var hallSeat = repository.GetById(id);
-
+            var hallSeat = await repository.GetByIdAsync(id);
             if (hallSeat == null)
                 throw new NotImplementedException();
+
             return mapper.Map<HallSeat, HallSeatDto>(hallSeat);
         }
 
-        public void UpdateItem(int id, HallSeatDto item)
+        public async Task UpdateItemAsync(int id, HallSeatDto item)
         {
-            var hallSeat = repository.GetById(id);
-
+            var hallSeat = await repository.GetByIdAsync(id);
             if (hallSeat == null)
                 throw new NotImplementedException();
+
             hallSeat.TypeOfPlace = item.TypeOfPlace;
             hallSeat.SeatNumber = item.SeatNumber;
             hallSeat.RowNumber = item.RowNumber;
-            hallSeat.AddPrice=item.AddPrice;
+            hallSeat.AddPrice = item.AddPrice;
 
-            repository.UpdateItem(id, hallSeat);
+            await repository.UpdateItemAsync(id, hallSeat);
         }
     }
 }

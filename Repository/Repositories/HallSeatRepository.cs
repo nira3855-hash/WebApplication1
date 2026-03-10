@@ -1,54 +1,61 @@
 ﻿using Repository.Entities;
 using Repository.Interfaces;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Repository.Repositories
 {
-    public class HallSeatRepository:IRepository<HallSeat>
+    public class HallSeatRepository : IRepository<HallSeat>
     {
         private readonly IContext _context;
         public HallSeatRepository(IContext context)
         {
-            this._context = context;
+            _context = context;
         }
-        public HallSeat AddItem(HallSeat item)
+
+        public async Task<HallSeat> AddItemAsync(HallSeat item)
         {
-            _context.HallSeats.Add(item);
-    
-            _context.save();
+            await _context.HallSeats.AddAsync(item);
+            await _context.SaveChangesAsync();
             return item;
         }
 
-        public void DeleteItem(int id)
+        public async Task DeleteItemAsync(int id)
         {
-            _context.HallSeats.Remove(GetById(id));
-            _context.save();
+            var hallSeat = await GetByIdAsync(id);
+            if (hallSeat != null)
+            {
+                _context.HallSeats.Remove(hallSeat);
+                await _context.SaveChangesAsync();
+            }
         }
 
-        public List<HallSeat> GetAll()
+        public async Task<List<HallSeat>> GetAllAsync()
         {
-            return _context.HallSeats.ToList();
+            return await _context.HallSeats.ToListAsync();
         }
 
-        public HallSeat GetById(int id)
+        public async Task<HallSeat> GetByIdAsync(int id)
         {
-            return _context.HallSeats.FirstOrDefault(x => x.Id == id);
+            return await _context.HallSeats.FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public HallSeat UpdateItem(int id, HallSeat item)
+        public async Task<HallSeat> UpdateItemAsync(int id, HallSeat item)
         {
-            var HallSeat = GetById(id);
-            HallSeat.HallID = item.HallID;
-            HallSeat.RowNumber = item.RowNumber;
-            HallSeat.SeatNumber = item.SeatNumber;
-            HallSeat.AddPrice = item.AddPrice;
-            HallSeat.TypeOfPlace = item.TypeOfPlace;
-            _context.save();
-            return HallSeat;
+            var hallSeat = await GetByIdAsync(id);
+            if (hallSeat != null)
+            {
+                hallSeat.HallID = item.HallID;
+                hallSeat.RowNumber = item.RowNumber;
+                hallSeat.SeatNumber = item.SeatNumber;
+                hallSeat.AddPrice = item.AddPrice;
+                hallSeat.TypeOfPlace = item.TypeOfPlace;
+
+                await _context.SaveChangesAsync();
+            }
+            return hallSeat;
         }
     }
 }

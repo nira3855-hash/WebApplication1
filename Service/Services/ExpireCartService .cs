@@ -1,16 +1,16 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Repository.Entities;
-using Repository;
-using Microsoft.EntityFrameworkCore;
 using Repository.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Service.Services
 {
-    public class ExpireCartService : BackgroundService//מחלקה עבור בדיקה כל 1 דקות ושחרור הדברים הנמצאים בסל קניות
+    public class ExpireCartService : BackgroundService
     {
         private readonly IServiceProvider _serviceProvider;
 
@@ -23,12 +23,12 @@ namespace Service.Services
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                await ExpireReservedTickets();
-                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken); // כל דקה
+                await ExpireReservedTicketsAsync();
+                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
             }
         }
 
-        private async Task ExpireReservedTickets()
+        private async Task ExpireReservedTicketsAsync()
         {
             using (var scope = _serviceProvider.CreateScope())
             {
@@ -37,16 +37,15 @@ namespace Service.Services
                 var now = DateTime.Now;
 
                 // בוחרים את כל המושבים שהסטטוס שלהם Reserved והזמן עבר
-                var expiredTickets = context.OrderDetails
+                var expiredTickets = await context.OrderDetails
                     .Where(o => o.Status == OrderStatus.Reserved
                              && o.SelectAt.AddMinutes(10) < now)
-                    .ToList();
+                    .ToListAsync();
 
                 if (expiredTickets.Any())
                 {
-                    // מוחקים את הרשומות
                     context.OrderDetails.RemoveRange(expiredTickets);
-                    context.save();
+                    await context.SaveChangesAsync();
                 }
             }
         }

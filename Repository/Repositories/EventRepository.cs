@@ -3,8 +3,8 @@ using Repository.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore; // צריך בשביל ToListAsync, FirstOrDefaultAsync
 
 namespace Repository.Repositories
 {
@@ -15,74 +15,90 @@ namespace Repository.Repositories
         {
             this._context = context;
         }
-        public Event AddItem(Event item)
-        {
-            _context.Events.Add(item);
 
-            _context.save();
+        public async Task<Event> AddItemAsync(Event item)
+        {
+            await _context.Events.AddAsync(item);
+            await _context.SaveChangesAsync();
             return item;
         }
 
-        public void DeleteItem(int id)
+        public async Task DeleteItemAsync(int id)
         {
-            _context.Events.Remove(GetById(id));
-            _context.save();
+            var entity = await GetByIdAsync(id);
+            if (entity != null)
+            {
+                _context.Events.Remove(entity);
+                await _context.SaveChangesAsync();
+            }
         }
 
-        public List<Event> GetAll()
+        public async Task<List<Event>> GetAllAsync()
         {
-            return _context.Events.ToList();
+            return await _context.Events.ToListAsync();
         }
 
-        public Event GetById(int id)
+        public async Task<Event> GetByIdAsync(int id)
         {
-            return _context.Events.FirstOrDefault(x => x.Id == id);
+            return await _context.Events.FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public Event UpdateItem(int id, Event item)
+        public async Task<Event> UpdateItemAsync(int id, Event item)
         {
-            var Event = GetById(id);
-            Event.ProducerID= item.ProducerID;
-            Event.Producer= item.Producer;
-            Event.Title = item.Title;
-            Event.EventDate = item.EventDate;
-            Event.HallID = item.HallID;
-            Event.BasePrice = item.BasePrice;
-            Event.ImageUrl = item.ImageUrl;
-            
-            _context.save();
+            var Event = await GetByIdAsync(id);
+            if (Event != null)
+            {
+                Event.ProducerID = item.ProducerID;
+                Event.Producer = item.Producer;
+                Event.Title = item.Title;
+                Event.EventDate = item.EventDate;
+                Event.HallID = item.HallID;
+                Event.BasePrice = item.BasePrice;
+                Event.ImageUrl = item.ImageUrl;
+
+                await _context.SaveChangesAsync();
+            }
             return Event;
         }
 
-        public List<Event> GetByProducerId(int producerId)
+        public async Task<List<Event>> GetByProducerIdAsync(int producerId)
         {
-            return _context.Events.Where(e => e.ProducerID == producerId).ToList();
+            return await _context.Events.Where(e => e.ProducerID == producerId).ToListAsync();
         }
 
-        public List<Event> GetByDate(DateTime date)
+        public async Task<List<Event>> GetByDateAsync(DateTime date)
         {
-            return _context.Events.Where(e => e.EventDate.Date == date.Date).ToList();
+            return await _context.Events
+                .Where(e => e.EventDate.Date == date.Date)
+                .ToListAsync();
         }
 
-        public List<Event> GetUpcomingEvents()
+        public async Task<List<Event>> GetUpcomingEventsAsync()
         {
-            return _context.Events.Where(e => e.EventDate > DateTime.Now).ToList();
+            return await _context.Events
+                .Where(e => e.EventDate > DateTime.Now)
+                .ToListAsync();
         }
 
-        public List<Event> Search(string searchTerm)
+        public async Task<List<Event>> SearchAsync(string searchTerm)
         {
-            return _context.Events.Where(e => e.Title.Contains(searchTerm) || e.Describe.Contains(searchTerm)).ToList();
+            return await _context.Events
+                .Where(e => e.Title.Contains(searchTerm) || e.Describe.Contains(searchTerm))
+                .ToListAsync();
         }
 
-        public List<Event> GetByLocation(string location)
+        public async Task<List<Event>> GetByLocationAsync(string location)
         {
-            return _context.Events.Where(e => e.Location.Equals(location, StringComparison.OrdinalIgnoreCase)).ToList();
+            return await _context.Events
+                .Where(e => e.Location.Equals(location, StringComparison.OrdinalIgnoreCase))
+                .ToListAsync();
         }
 
-        public List<Event> GetByHallId(int hallId)
+        public async Task<List<Event>> GetByHallIdAsync(int hallId)
         {
-            return _context.Events.Where(e => e.HallID == hallId).ToList();
+            return await _context.Events
+                .Where(e => e.HallID == hallId)
+                .ToListAsync();   
         }
-
     }
 }

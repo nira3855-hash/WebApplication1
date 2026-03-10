@@ -1,54 +1,62 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Repository.Entities;
 using Repository.Interfaces;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Repository.Repositories
 {
-    public class ProducerRepository:IRepository<Producer>
+    public class ProducerRepository : IRepository<Producer>
     {
         private readonly IContext _context;
         public ProducerRepository(IContext context)
         {
-            this._context = context;
+            _context = context;
         }
-        public Producer AddItem(Producer item)
-        {
-            _context.Producers.Add(item);
 
-            _context.save();
+        public async Task<Producer> AddItemAsync(Producer item)
+        {
+            await _context.Producers.AddAsync(item);
+            await _context.SaveChangesAsync();
             return item;
         }
 
-        public void DeleteItem(int id)
+        public async Task DeleteItemAsync(int id)
         {
-            _context.Producers.Remove(GetById(id));
-            _context.save();
+            var producer = await GetByIdAsync(id);
+            if (producer != null)
+            {
+                _context.Producers.Remove(producer);
+                await _context.SaveChangesAsync();
+            }
         }
 
-        public List<Producer> GetAll()
+        public async Task<List<Producer>> GetAllAsync()
         {
-            return _context.Producers.Include(p => p.User).ToList();
+            return await _context.Producers.Include(p => p.User).ToListAsync();
         }
 
-        public Producer GetById(int id)
+        public async Task<Producer> GetByIdAsync(int id)
         {
-            return _context.Producers.Include(p => p.User).FirstOrDefault(x => x.UserId == id);
+            return await _context.Producers
+                .Include(p => p.User)
+                .FirstOrDefaultAsync(x => x.UserId == id);
         }
 
-        public Producer UpdateItem(int id, Producer item)
+        public async Task<Producer> UpdateItemAsync(int id, Producer item)
         {
-            var Producer = GetById(id);
-            Producer.CompanyName = item.CompanyName;
-            Producer.UserId = item.UserId;
-            Producer.User = item.User;
-            Producer.Bio = item.Bio;
-            _context.save();
-            return Producer;
+            var producer = await GetByIdAsync(id);
+            if (producer != null)
+            {
+                producer.CompanyName = item.CompanyName;
+                producer.UserId = item.UserId;
+                producer.User = item.User;
+                producer.Bio = item.Bio;
+
+                await _context.SaveChangesAsync();
+            }
+            return producer;
         }
     }
 }

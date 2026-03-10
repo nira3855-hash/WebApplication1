@@ -1,10 +1,9 @@
-﻿using System;
+﻿using Repository.Entities;
+using Repository.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Repository.Entities;
-using Repository.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Repository.Repositories
 {
@@ -13,45 +12,51 @@ namespace Repository.Repositories
         private readonly IContext _context;
         public OrderDetailRepository(IContext context)
         {
-            this._context = context;
+            _context = context;
         }
-        public OrderDetail AddItem(OrderDetail item)
-        {
-            _context.OrderDetails.Add(item);
 
-            _context.save();
+        public async Task<OrderDetail> AddItemAsync(OrderDetail item)
+        {
+            await _context.OrderDetails.AddAsync(item);
+            await _context.SaveChangesAsync();
             return item;
         }
 
-        public void DeleteItem(int id)
+        public async Task DeleteItemAsync(int id)
         {
-            _context.OrderDetails.Remove(GetById(id));
-            _context.save();
+            var orderDetail = await GetByIdAsync(id);
+            if (orderDetail != null)
+            {
+                _context.OrderDetails.Remove(orderDetail);
+                await _context.SaveChangesAsync();
+            }
         }
 
-        public List<OrderDetail> GetAll()
+        public async Task<List<OrderDetail>> GetAllAsync()
         {
-            return _context.OrderDetails.ToList();
+            return await _context.OrderDetails.ToListAsync();
         }
 
-        public OrderDetail GetById(int id)
+        public async Task<OrderDetail> GetByIdAsync(int id)
         {
-            return _context.OrderDetails.FirstOrDefault(x => x.Id == id);
+            return await _context.OrderDetails.FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public OrderDetail UpdateItem(int id, OrderDetail item)
+        public async Task<OrderDetail> UpdateItemAsync(int id, OrderDetail item)
         {
-            var OrderDetail = GetById(id);
-            OrderDetail.EventID = item.EventID ;
-            OrderDetail.UserID = item.UserID;
-            OrderDetail.PriceAtPurchase = item.PriceAtPurchase;
-            OrderDetail.Status = item.Status;
-            OrderDetail.HallSeatID = item.HallSeatID;
-            OrderDetail.SelectAt = item.SelectAt;
+            var orderDetail = await GetByIdAsync(id);
+            if (orderDetail != null)
+            {
+                orderDetail.EventID = item.EventID;
+                orderDetail.UserID = item.UserID;
+                orderDetail.PriceAtPurchase = item.PriceAtPurchase;
+                orderDetail.Status = item.Status;
+                orderDetail.HallSeatID = item.HallSeatID;
+                orderDetail.SelectAt = item.SelectAt;
 
-
-            _context.save();
-            return OrderDetail;
+                await _context.SaveChangesAsync();
+            }
+            return orderDetail;
         }
     }
 }

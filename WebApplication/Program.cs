@@ -1,38 +1,30 @@
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Hosting;
-using ConsoleApp1.Models;
-//using Common;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Repository;
 using Repository.Entities;
 using Repository.Interfaces;
 using Repository.Repositories;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using AutoMapper;
-//using Service.Dto;
-//using Service.Interface;
-//using Service.Services;
-using System.Text;
 using Service.Dto;
 using Service.Interface;
 using Service.Services;
-using System;
+using System.Text;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using ConsoleApp1.Models;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
+// --- 1. הוספת שירותים למערכת (DI Container) ---
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+// הגדרת Swagger עם תמיכה ב-JWT
 builder.Services.AddEndpointsApiExplorer();
-//סווגר עם אבטחה
 builder.Services.AddSwaggerGen(options =>
 {
-    // הגדרת כפתור ה-Authorize ב-Swagger
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
@@ -40,10 +32,9 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "נא להזין את הטוקן שקיבלת מה-Login בלבד (ללא המילה Bearer)"
+        Description = "נא להזין את הטוקן בלבד (ללא המילה Bearer)"
     });
 
-    // הגדרה שכל הבקשות ב-Swagger ידרשו את הטוקן אם הוגדר [Authorize]
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -55,67 +46,83 @@ builder.Services.AddSwaggerGen(options =>
                     Id = "Bearer"
                 }
             },
-            new string[] {}
+            Array.Empty<string>()
         }
     });
 });
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-             .AddJwtBearer(option =>
-             option.TokenValidationParameters = new TokenValidationParameters
-             {
-                 ValidateIssuer = true,
-                 ValidateAudience = true,
-                 ValidateLifetime = true,
-                 ValidateIssuerSigningKey = true,
-                 ValidIssuer = builder.Configuration["Jwt:Issuer"],
-                 ValidAudience = builder.Configuration["Jwt:Audience"],
-                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+// --- תיקון ה-CORS המעודכן ---
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactApp", policy =>
+    {
+        // וודאי שזו הכתובת המדויקת של ה-React (כולל הפורט 5175)
+        policy.WithOrigins("http://localhost:5175")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
 
-             });
-//הגדרת התלויות 
-//addscoped -לכל גולש יוצר את המופע
-//addTrensient -בכל בקשה 
-//addsingelton -אחד לכולם
+// הגדרת JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        };
+    });
+
+// הגדרת תלותיות (Dependency Injection)
+builder.Services.AddScoped<IContext, TandO>();
 builder.Services.AddScoped<IRepository<User>, UserRepository>();
 builder.Services.AddScoped<UserIService, UserService>();
 builder.Services.AddScoped<IRepository<Producer>, ProducerRepository>();
 builder.Services.AddScoped<IService<ProducerDto>, ProducerService>();
 builder.Services.AddScoped<IRepository<Hall>, HallRepository>();
 builder.Services.AddScoped<IService<HallDto>, HallService>();
-builder.Services.AddHostedService<ExpireCartService>();
-
 builder.Services.AddScoped<IRepository<HallSeat>, HallSeatRepository>();
 builder.Services.AddScoped<IService<HallSeatDto>, HallSeatService>();
 builder.Services.AddScoped<EventIRepository, EventRepository>();
 builder.Services.AddScoped<EventIService, EventService>();
 builder.Services.AddScoped<IRepository<OrderDetail>, OrderDetailRepository>();
 builder.Services.AddScoped<OrderDetailIService, OrderDetailService>();
+builder.Services.AddHostedService<ExpireCartService>();
 
-//builder.Services.AddAutoMapper(typeof(MyMapper));
-
+// הגדרת AutoMapper
 builder.Services.AddAutoMapper(cfg =>
+
 {
+
     cfg.AddProfile<MyMapper>();
+
 });
 
-//builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
-//builder.Services.AddScoped<IContext,Database>();
-//חיבור ל sql 
-builder.Services.AddScoped<IContext, TandO>();
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// --- 2. הגדרת ה-Pipeline (סדר הפעולות קריטי!) ---
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+app.UseRouting();
+
+// ה-CORS חייב להיות כאן - אחרי ה-Routing ולפני ה-Authentication
+app.UseCors("AllowReactApp");
+
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
+app.UseAuthentication(); // אימות
+app.UseAuthorization();  // הרשאות
 
 app.MapControllers();
 

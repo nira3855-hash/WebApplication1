@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Repository.Entities;
 using Service.Dto;
 using Service.Interface;
-
-// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace WebApplication1.Controllers
 {
@@ -11,59 +11,60 @@ namespace WebApplication1.Controllers
     [ApiController]
     public class ProducerController : ControllerBase
     {
-        private readonly IService<ProducerDto> Producers;
+        private readonly IService<ProducerDto> _producers;
+
         public ProducerController(IService<ProducerDto> producers)
         {
-            this.Producers = producers;
+            _producers = producers;
         }
-        // GET: CustomerController
+
+        // GET: api/Producer
         [HttpGet]
-        public List<ProducerDto> Get()
+        public async Task<ActionResult<List<ProducerDto>>> Get()
         {
-            return Producers.GetAll();
-
+            // מחזיר את כל המפיקים
+            var list = await _producers.GetAllAsync();
+            return Ok(list);
         }
 
-
-        // GET: CustomerController/Details/5
+        // GET: api/Producer/5
         [HttpGet("{id}")]
-        public IActionResult Get(int id)
+        public async Task<IActionResult> Get(int id)
         {
             try
             {
-                return Ok(Producers.GetById(id));
+                var producer = await _producers.GetByIdAsync(id);
+                return Ok(producer);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-               return NotFound(new
+                return NotFound(new
                 {
                     ErrorCode = 404,
                     Message = $"Producer with ID {id} was not found."
-                }); 
+                });
             }
         }
 
-
-
-        // POST api/<CustomerController>/5
+        // POST: api/Producer
         [HttpPost]
-        public ProducerDto Create(ProducerDto value)
+        public async Task<ProducerDto> Create([FromBody] ProducerDto value)
         {
-            return Producers.AddItem(value);
-
+            // יצירת מפיק חדש
+            return await _producers.AddItemAsync(value);
         }
 
-
-        // PUT api/<CustomerController>/5
+        // PUT: api/Producer/5
         [HttpPut("{id}")]
-        public IActionResult Put(int id, [FromBody] ProducerDto value)
+        public async Task<IActionResult> Put(int id, [FromBody] ProducerDto value)
         {
             try
             {
-                Producers.UpdateItem(id, value);
-                return Ok();
+                // עדכון מפיק קיים
+                await _producers.UpdateItemAsync(id, value);
+                return Ok(); // רק אם נמצא ועודכן, מחזירים Ok
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return NotFound(new
                 {
@@ -71,19 +72,19 @@ namespace WebApplication1.Controllers
                     Message = $"Producer with ID {id} was not found."
                 });
             }
-            
         }
 
-        // DELETE api/<CustomerController>/5
+        // DELETE: api/Producer/5
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                Producers.DeleteItem(id);
+                // מחיקה של מפיק
+                await _producers.DeleteItemAsync(id);
                 return Ok();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return NotFound(new
                 {
@@ -92,6 +93,5 @@ namespace WebApplication1.Controllers
                 });
             }
         }
-
     }
 }

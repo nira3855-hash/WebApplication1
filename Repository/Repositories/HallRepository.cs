@@ -1,54 +1,60 @@
 ﻿using Repository.Entities;
 using Repository.Interfaces;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace Repository.Repositories
 {
-    public class HallRepository:IRepository<Hall>
+    public class HallRepository : IRepository<Hall>
     {
         private readonly IContext _context;
         public HallRepository(IContext context)
         {
-            this._context = context;
+            _context = context;
         }
-        public Hall AddItem(Hall item)
-        {
-            _context.Halls.Add(item);
 
-            _context.save();
+        public async Task<Hall> AddItemAsync(Hall item)
+        {
+            await _context.Halls.AddAsync(item);
+            await _context.SaveChangesAsync();
             return item;
         }
 
-        public void DeleteItem(int id)
+        public async Task DeleteItemAsync(int id)
         {
-            _context.Halls.Remove(GetById(id));
-            _context.save();
+            var hall = await GetByIdAsync(id);
+            if (hall != null)
+            {
+                _context.Halls.Remove(hall);
+                await _context.SaveChangesAsync();
+            }
         }
 
-        public List<Hall> GetAll()
+        public async Task<List<Hall>> GetAllAsync()
         {
-            return _context.Halls.ToList();
+            return await _context.Halls.ToListAsync();
         }
 
-        public Hall GetById(int id)
+        public async Task<Hall> GetByIdAsync(int id)
         {
-            return _context.Halls.FirstOrDefault(x => x.Id == id);
+            return await _context.Halls.FirstOrDefaultAsync(x => x.Id == id);
         }
 
-        public Hall UpdateItem(int id, Hall item)
+        public async Task<Hall> UpdateItemAsync(int id, Hall item)
         {
-            var Hall = GetById(id);
-            Hall.shape = item.shape;
-            Hall.name = item.name;
-            Hall.numOfSeats = item.numOfSeats;
-            Hall.location = item.location;
+            var hall = await GetByIdAsync(id);
+            if (hall != null)
+            {
+                hall.shape = item.shape;
+                hall.name = item.name;
+                hall.numOfSeats = item.numOfSeats;
+                hall.location = item.location;
 
-            _context.save();
-            return Hall;
+                await _context.SaveChangesAsync();
+            }
+            return hall;
         }
     }
 }
