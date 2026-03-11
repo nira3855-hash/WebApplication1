@@ -11,10 +11,10 @@ namespace Service.Services
 {
     public class HallSeatService : IService<HallSeatDto>
     {
-        private readonly IRepository<HallSeat> repository;
+        private readonly HallSeatIRepository repository;
         private readonly IMapper mapper;
 
-        public HallSeatService(IRepository<HallSeat> repository, IMapper mapper)
+        public HallSeatService(HallSeatIRepository repository, IMapper mapper)
         {
             this.repository = repository;
             this.mapper = mapper;
@@ -31,7 +31,7 @@ namespace Service.Services
         {
             var hallSeat = await repository.GetByIdAsync(id);
             if (hallSeat == null)
-                throw new NotImplementedException();
+                throw new ArgumentException("האולם לא קיים.");
 
             await repository.DeleteItemAsync(id);
         }
@@ -46,7 +46,7 @@ namespace Service.Services
         {
             var hallSeat = await repository.GetByIdAsync(id);
             if (hallSeat == null)
-                throw new NotImplementedException();
+                throw new ArgumentException("האולם לא קיים.");
 
             return mapper.Map<HallSeat, HallSeatDto>(hallSeat);
         }
@@ -55,7 +55,7 @@ namespace Service.Services
         {
             var hallSeat = await repository.GetByIdAsync(id);
             if (hallSeat == null)
-                throw new NotImplementedException();
+                throw new ArgumentException("האולם לא קיים.");
 
             hallSeat.TypeOfPlace = item.TypeOfPlace;
             hallSeat.SeatNumber = item.SeatNumber;

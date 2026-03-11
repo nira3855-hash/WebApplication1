@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Repository.Repositories
 {
-    public class OrderDetailRepository : IRepository<OrderDetail>
+    public class OrderDetailRepository : OrderDetailIRepository
     {
         private readonly IContext _context;
         public OrderDetailRepository(IContext context)
@@ -36,12 +36,15 @@ namespace Repository.Repositories
         {
             return await _context.OrderDetails.ToListAsync();
         }
-
+      
         public async Task<OrderDetail> GetByIdAsync(int id)
         {
             return await _context.OrderDetails.FirstOrDefaultAsync(x => x.Id == id);
         }
-
+        public async Task<OrderDetail> GetByUserIdAsync(int UserId)
+        {
+            return await _context.OrderDetails.FirstOrDefaultAsync(x => x.UserID == UserId);
+        }
         public async Task<OrderDetail> UpdateItemAsync(int id, OrderDetail item)
         {
             var orderDetail = await GetByIdAsync(id);

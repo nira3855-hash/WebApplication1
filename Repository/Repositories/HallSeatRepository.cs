@@ -7,14 +7,21 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Repository.Repositories
 {
-    public class HallSeatRepository : IRepository<HallSeat>
+    public class HallSeatRepository : HallSeatIRepository
     {
         private readonly IContext _context;
         public HallSeatRepository(IContext context)
         {
             _context = context;
         }
+        public async Task AddRangeAsync(List<HallSeat> seats)
+        {
+            if (seats == null || !seats.Any())
+                return;
 
+            await _context.HallSeats.AddRangeAsync(seats);
+            await _context.SaveChangesAsync();
+        }
         public async Task<HallSeat> AddItemAsync(HallSeat item)
         {
             await _context.HallSeats.AddAsync(item);

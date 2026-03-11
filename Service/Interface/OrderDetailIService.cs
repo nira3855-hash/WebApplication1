@@ -21,6 +21,7 @@ namespace Service.Interface
 
         // מחזיר את כל הפריטים
         Task<List<OrderDetailDto>> GetAllAsync();
+        Task<OrderDetailDto> GetByUserIdAsync(int UserId);
 
         // מוחק פריט לפי ID
         Task DeleteItemAsync(int id);

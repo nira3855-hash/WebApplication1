@@ -57,7 +57,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReactApp", policy =>
     {
         // וודאי שזו הכתובת המדויקת של ה-React (כולל הפורט 5175)
-        policy.WithOrigins("http://localhost:5175")
+        policy.WithOrigins("http://localhost:5177")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -87,10 +87,12 @@ builder.Services.AddScoped<IRepository<Producer>, ProducerRepository>();
 builder.Services.AddScoped<IService<ProducerDto>, ProducerService>();
 builder.Services.AddScoped<IRepository<Hall>, HallRepository>();
 builder.Services.AddScoped<IService<HallDto>, HallService>();
+builder.Services.AddScoped<HallSeatIRepository, HallSeatRepository>();
 builder.Services.AddScoped<IRepository<HallSeat>, HallSeatRepository>();
 builder.Services.AddScoped<IService<HallSeatDto>, HallSeatService>();
 builder.Services.AddScoped<EventIRepository, EventRepository>();
 builder.Services.AddScoped<EventIService, EventService>();
+builder.Services.AddScoped<OrderDetailIRepository, OrderDetailRepository>();
 builder.Services.AddScoped<IRepository<OrderDetail>, OrderDetailRepository>();
 builder.Services.AddScoped<OrderDetailIService, OrderDetailService>();
 builder.Services.AddHostedService<ExpireCartService>();

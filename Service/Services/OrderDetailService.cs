@@ -14,15 +14,13 @@ namespace Service.Services
     {
         private readonly EventIRepository eventRepository;
         private readonly IRepository<HallSeat> seatRepository;
-        private readonly IRepository<OrderDetail> repository;
+        private readonly OrderDetailIRepository repository;
         private readonly IMapper mapper;
 
-        public OrderDetailService(
-            IRepository<OrderDetail> repository,
-            IMapper mapper,
-            EventIRepository eventR,
-            IRepository<HallSeat> seatR)
-        {
+        public OrderDetailService(OrderDetailIRepository repository,
+                                    IMapper mapper,
+                       EventIRepository eventR,
+                  IRepository<HallSeat> seatR){
             this.seatRepository = seatR;
             this.eventRepository = eventR;
             this.repository = repository;
@@ -105,7 +103,14 @@ namespace Service.Services
 
             await repository.DeleteItemAsync(orderDetailId);
         }
+        public async Task<OrderDetailDto> GetByUserIdAsync(int id)
+        {
+            var order = await repository.GetByUserIdAsync(id);
+            if (order == null)
+                throw new NotImplementedException();
 
+            return mapper.Map<OrderDetail, OrderDetailDto>(order);
+        }
         public async Task<OrderDetailDto> GetByIdAsync(int id)
         {
             var order = await repository.GetByIdAsync(id);

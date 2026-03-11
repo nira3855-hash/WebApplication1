@@ -8,7 +8,7 @@ namespace Service.Dto
 {
     public class HallDto
     {
-        public int? Id { get; set; }
+        public int Id { get; set; }
         public string name { get; set; }
         public string location { get; set; }
         public int numOfSeats { get; set; }

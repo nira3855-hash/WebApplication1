@@ -31,7 +31,7 @@ namespace WebApplication1.Controllers
 
         // GET api/OrderDetail/5
         [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id)
+        public async Task<IActionResult> GetByUser(int id)
         {
             try
             {
@@ -48,6 +48,23 @@ namespace WebApplication1.Controllers
             }
         }
 
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> Get(int userId)
+        {
+            try
+            {
+                var order = await _orders.GetByUserIdAsync(userId);
+                return Ok(order);
+            }
+            catch
+            {
+                return NotFound(new
+                {
+                    ErrorCode = 404,
+                    Message = $"Order with ID {userId} was not found."
+                });
+            }
+        }
         [HttpPost("add-to-cart")]
         public async Task<IActionResult> AddToCart(OrderDetailCreateDto dto)
         {
@@ -99,5 +116,6 @@ namespace WebApplication1.Controllers
                 });
             }
         }
+
     }
 }
