@@ -176,7 +176,7 @@ namespace Service.Services
         {
             var hall = await repository.GetByIdAsync(id);
             if (hall == null)
-                throw new ArgumentException("המקום לא קיים.");
+                throw new ArgumentException("האולם לא קיים.");
 
             await repository.DeleteItemAsync(id);
         }
@@ -191,7 +191,7 @@ namespace Service.Services
         {
             var hall = await repository.GetByIdAsync(id);
             if (hall == null)
-                throw new ArgumentException("המקום לא קיים.");
+                throw new ArgumentException("האולם לא קיים.");
 
             return mapper.Map<Hall, HallDto>(hall);
         }
@@ -201,7 +201,7 @@ namespace Service.Services
             ValidateHall(item);
             var hall = await repository.GetByIdAsync(id);
             if (hall == null)
-                throw new ArgumentException("המקום לא קיים.");
+                throw new ArgumentException("האולם לא קיים.");
 
             hall.name = item.name;
             hall.location = item.location;

@@ -31,7 +31,7 @@ namespace WebApplication1.Controllers
 
         // GET api/OrderDetail/5
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetByUser(int id)
+        public async Task<IActionResult> Get(int id)
         {
             try
             {
@@ -49,7 +49,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpGet("user/{userId}")]
-        public async Task<IActionResult> Get(int userId)
+        public async Task<IActionResult> GetByUser(int userId)
         {
             try
             {

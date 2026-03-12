@@ -9,6 +9,6 @@ namespace Repository.Interfaces
 {
     public interface OrderDetailIRepository:IRepository<OrderDetail>
     {
-        Task<OrderDetail> GetByUserIdAsync(int UserId);
+        Task<List<OrderDetail>> GetByUserIdAsync(int UserId);
     }
 }

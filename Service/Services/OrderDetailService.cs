@@ -103,13 +103,13 @@ namespace Service.Services
 
             await repository.DeleteItemAsync(orderDetailId);
         }
-        public async Task<OrderDetailDto> GetByUserIdAsync(int id)
+        public async Task<List<OrderDetailDto>> GetByUserIdAsync(int id)
         {
             var order = await repository.GetByUserIdAsync(id);
             if (order == null)
                 throw new NotImplementedException();
 
-            return mapper.Map<OrderDetail, OrderDetailDto>(order);
+            return mapper.Map<List<OrderDetail>, List<OrderDetailDto>>(order);
         }
         public async Task<OrderDetailDto> GetByIdAsync(int id)
         {

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Service.Services
 {
-    public class HallSeatService : IService<HallSeatDto>
+    public class HallSeatService : HallSeatIService
     {
         private readonly HallSeatIRepository repository;
         private readonly IMapper mapper;
@@ -27,11 +27,12 @@ namespace Service.Services
             return mapper.Map<HallSeat, HallSeatDto>(added);
         }
 
+
         public async Task DeleteItemAsync(int id)
         {
             var hallSeat = await repository.GetByIdAsync(id);
             if (hallSeat == null)
-                throw new ArgumentException("האולם לא קיים.");
+                throw new ArgumentException("המקום לא קיים.");
 
             await repository.DeleteItemAsync(id);
         }
@@ -46,16 +47,23 @@ namespace Service.Services
         {
             var hallSeat = await repository.GetByIdAsync(id);
             if (hallSeat == null)
-                throw new ArgumentException("האולם לא קיים.");
+                throw new ArgumentException("המקום לא קיים.");
 
             return mapper.Map<HallSeat, HallSeatDto>(hallSeat);
         }
+        public async Task<List<HallSeatDto>> GetByHallIdAsync(int HallId)
+        {
+            var hallSeat = await repository.GetByHallIdAsync(HallId);
+            if (hallSeat == null)
+                throw new ArgumentException("המקום לא קיים.");
 
+            return mapper.Map< List<HallSeat>, List<HallSeatDto>>(hallSeat);
+        }
         public async Task UpdateItemAsync(int id, HallSeatDto item)
         {
             var hallSeat = await repository.GetByIdAsync(id);
             if (hallSeat == null)
-                throw new ArgumentException("האולם לא קיים.");
+                throw new ArgumentException("המקום לא קיים.");
 
             hallSeat.TypeOfPlace = item.TypeOfPlace;
             hallSeat.SeatNumber = item.SeatNumber;

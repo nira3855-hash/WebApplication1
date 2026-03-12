@@ -66,7 +66,7 @@ namespace WebApplication1.Controllers
 
         // POST api/User
         [HttpPost]
-        public async Task<UserDto> Create([FromBody] UserRegisterDto value)
+        public async Task<AuthResponseDto> Create([FromBody] UserRegisterDto value)
         {
             // הוספת משתמש חדש
             // הערה: צריך FromBody כדי שה־DTO יקבל את המידע מה-BODY של הבקשה

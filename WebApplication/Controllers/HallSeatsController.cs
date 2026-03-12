@@ -13,9 +13,9 @@ namespace WebApplication1.Controllers
     [ApiController]
     public class HallSeatsController : ControllerBase
     {
-        private readonly IService<HallSeatDto> _hallSeatService;
+        private readonly HallSeatIService _hallSeatService;
 
-        public HallSeatsController(IService<HallSeatDto> hallSeatService)
+        public HallSeatsController(HallSeatIService hallSeatService)
         {
             _hallSeatService = hallSeatService;
         }
@@ -43,6 +43,23 @@ namespace WebApplication1.Controllers
                 {
                     ErrorCode = 404,
                     Message = $"HallSeat with ID {id} was not found."
+                });
+            }
+        }
+        [HttpGet("hall/{hallId}")]
+        public async Task<IActionResult> GetByHall(int hallId)
+        {
+            try
+            {
+                var item = await _hallSeatService.GetByHallIdAsync(hallId);
+                return Ok(item);
+            }
+            catch (NotImplementedException)
+            {
+                return NotFound(new
+                {
+                    ErrorCode = 404,
+                    Message = $"HallSeat with ID {hallId} was not found."
                 });
             }
         }

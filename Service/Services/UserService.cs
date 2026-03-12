@@ -43,7 +43,7 @@ namespace Service.Services
         }
 
         //OK
-        public async Task<UserDto> AddItemAsync(UserRegisterDto item)
+        public async Task<AuthResponseDto> AddItemAsync(UserRegisterDto item)
         {
             //בדיקת ערכי חובה
             if (string.IsNullOrEmpty(item.email))
@@ -75,7 +75,15 @@ namespace Service.Services
 
             // הכנסת משתמש
             var savedUser = await repository.AddItemAsync(userEntity);
-            return mapper.Map<UserDto>(savedUser);
+            
+
+            // יצירת Token
+            var token = GenerateJwtToken(savedUser);
+
+            return new AuthResponseDto{
+                User=mapper.Map<UserDto>(savedUser),
+               Token= token 
+            };  
         }
 
         private string GenerateJwtToken(User user)

@@ -9,5 +9,6 @@ namespace Repository.Interfaces
     public interface HallSeatIRepository:IRepository<HallSeat>
     {
         Task AddRangeAsync(List<HallSeat> seats);
+        Task<List<HallSeat>> GetByHallIdAsync(int hallId);
     }
 }

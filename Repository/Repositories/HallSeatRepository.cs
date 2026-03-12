@@ -48,7 +48,12 @@ namespace Repository.Repositories
         {
             return await _context.HallSeats.FirstOrDefaultAsync(x => x.Id == id);
         }
-
+        public async Task<List<HallSeat>> GetByHallIdAsync(int hallId)
+        {
+            return await _context.HallSeats
+                .Where(x => x.HallID == hallId)
+                .ToListAsync();
+        }
         public async Task<HallSeat> UpdateItemAsync(int id, HallSeat item)
         {
             var hallSeat = await GetByIdAsync(id);

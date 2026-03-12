@@ -8,7 +8,7 @@ namespace Service.Interface
     public interface UserIService
     {
         // פעולת הרישום - מקבלת DTO עם סיסמה ומחזירה DTO נקי
-        Task<UserDto> AddItemAsync(UserRegisterDto item);
+        Task<AuthResponseDto> AddItemAsync(UserRegisterDto item);
 
         // פעולת התחברות - מקבלת פרטי זיהוי ומחזירה טוקן או אובייקט משתמש
         Task<string> LoginAsync(UserLogin item);

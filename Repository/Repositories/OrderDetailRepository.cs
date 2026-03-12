@@ -41,9 +41,11 @@ namespace Repository.Repositories
         {
             return await _context.OrderDetails.FirstOrDefaultAsync(x => x.Id == id);
         }
-        public async Task<OrderDetail> GetByUserIdAsync(int UserId)
+        public async Task<List<OrderDetail>> GetByUserIdAsync(int userId)
         {
-            return await _context.OrderDetails.FirstOrDefaultAsync(x => x.UserID == UserId);
+            return await _context.OrderDetails
+                .Where(x => x.UserID == userId)
+                .ToListAsync();
         }
         public async Task<OrderDetail> UpdateItemAsync(int id, OrderDetail item)
         {
