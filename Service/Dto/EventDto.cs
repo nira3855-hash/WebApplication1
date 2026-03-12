@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
@@ -19,8 +20,7 @@ namespace Service.Dto
         public string Describe { get; set; }
        
         public int HallID { get; set; }
-
-        public byte[]? Image { get; set; } //התמונה כמחרוזת
-
+        public string? ImageUrl { get; set; }
+        public IFormFile? FileImage { get; set; }
     }
 }

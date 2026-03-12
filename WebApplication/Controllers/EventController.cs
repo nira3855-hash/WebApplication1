@@ -49,10 +49,29 @@ namespace WebApplication1.Controllers
 
         // POST api/Event
         [HttpPost]
-        public async Task<EventDto> Post([FromBody] EventDto value)
+        public async Task<EventDto> Post([FromForm] EventDto eventDto)
         {
-            // מוסיף אירוע חדש (אסינכרוני)
-            return await events.AddEventAsync(value);
+            string imagePath = null;
+
+            if (eventDto.FileImage != null)
+            {
+                string folder = Path.Combine(Directory.GetCurrentDirectory(),
+                "wwwroot/images");
+
+                string fileName = Guid.NewGuid().ToString() + Path.GetExtension(eventDto.FileImage.FileName);
+
+                string fullPath = Path.Combine(folder, fileName);
+
+                using (var stream = new FileStream(fullPath, FileMode.Create))
+                {
+                    await eventDto.FileImage.CopyToAsync(stream);
+                }
+
+                imagePath = "/images/" + fileName;
+            }
+            eventDto.ImageUrl = imagePath;
+
+            return await events.AddEventAsync(eventDto);
         }
 
         // PUT api/Event/5
