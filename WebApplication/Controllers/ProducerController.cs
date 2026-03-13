@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Service.Dto;
 using Service.Interface;
 using System;
@@ -47,7 +48,9 @@ namespace WebApplication1.Controllers
         }
 
         // POST: api/Producer
+       
         [HttpPost]
+        [Authorize(Roles = "0")]
         public async Task<ProducerDto> Create([FromBody] ProducerDto value)
         {
             // יצירת מפיק חדש

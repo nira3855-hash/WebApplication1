@@ -123,7 +123,7 @@ app.UseRouting();
 app.UseCors("AllowReactApp");
 
 app.UseHttpsRedirection();
-
+app.UseStaticFiles();
 app.UseAuthentication(); // אימות
 app.UseAuthorization();  // הרשאות
 
