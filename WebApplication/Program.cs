@@ -80,6 +80,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 // הגדרת תלותיות (Dependency Injection)
+builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IContext, TandO>();
 builder.Services.AddScoped<IRepository<User>, UserRepository>();
 builder.Services.AddScoped<UserIService, UserService>();

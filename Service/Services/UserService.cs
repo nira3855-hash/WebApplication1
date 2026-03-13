@@ -22,12 +22,16 @@ namespace Service.Services
         private readonly IRepository<User> repository;
         private readonly IMapper mapper;
         private readonly IConfiguration _config;
+        private readonly ITokenService tokenService;
 
-        public UserService(IRepository<User> repository, IMapper mapper, IConfiguration _config)
+        
+
+        public UserService(IRepository<User> repository, ITokenService tokenService, IMapper mapper, IConfiguration _config)
         {
             this.repository = repository;
             this.mapper = mapper;
             this._config = _config;
+            this.tokenService = tokenService;
         }
 
         public bool IsValidPassword(string password)
@@ -78,7 +82,7 @@ namespace Service.Services
             
 
             // יצירת Token
-            var token = GenerateJwtToken(savedUser);
+            var token = tokenService.GenerateToken(savedUser);
 
             return new AuthResponseDto{
                 User=mapper.Map<UserDto>(savedUser),
@@ -86,35 +90,7 @@ namespace Service.Services
             };  
         }
 
-        private string GenerateJwtToken(User user)
-        {
-            // 1. הגדרת ה-Key וה-Credentials (חתימה)
-            // המפתח חייב להיות לפחות 32 תווים כדי ש-HmacSha256 יעבוד
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-            // 2. הגדרת ה-Claims
-            // אלו הפרטים שיהיו מוצפנים בתוך הטוקן ונוכל לשלוף אותם בכל בקשה
-            var claims = new[]
-            {
-                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.email),
-                new Claim(ClaimTypes.Name, user.Name),
-                new Claim(ClaimTypes.Role, user.UserRole.ToString()), // חשוב להרשאות!
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()) // מזהה ייחודי לטוקן
-            };
-
-            // 3. יצירת אובייקט הטוקן
-            var token = new JwtSecurityToken(
-                issuer: _config["Jwt:Issuer"],
-                audience: _config["Jwt:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddHours(1), // תוקף הטוקן (למשל 1 שעות)
-                signingCredentials: credentials);
-
-            // 4. המרת אובייקט הטוקן למחרוזת (String)
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
+       
 
         //OK
         public async Task<string> LoginAsync(UserLogin item)
@@ -134,7 +110,7 @@ namespace Service.Services
                 throw new UnauthorizedAccessException("Invalid email or password");
 
             //יצירת הטוקן 
-            string token = GenerateJwtToken(user);
+            string token = tokenService.GenerateToken(user);
             return token;
         }
 

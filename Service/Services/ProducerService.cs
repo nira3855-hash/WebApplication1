@@ -1,11 +1,15 @@
 ﻿using AutoMapper;
+using Microsoft.IdentityModel.Tokens;
 using Repository.Entities;
 using Repository.Interfaces;
 using Service.Dto;
 using Service.Interface;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -16,12 +20,16 @@ namespace Service.Services
         private readonly IRepository<User> users;
         private readonly IRepository<Producer> repository;
         private readonly IMapper mapper;
+        private readonly ITokenService tokenService;
 
-        public ProducerService(IRepository<Producer> repository, IRepository<User> users, IMapper mapper)
+       
+    
+        public ProducerService(IRepository<Producer> repository, ITokenService tokenService, IRepository<User> users, IMapper mapper)
         {
             this.repository = repository;
             this.mapper = mapper;
             this.users = users;
+            this.tokenService = tokenService;
         }
 
         public async Task<ProducerDto> AddItemAsync(ProducerDto dto)
@@ -49,7 +57,8 @@ namespace Service.Services
                 Bio = dto.Bio
                 // מקשר אוטומטי לUSER בUSERS
             };
-
+            // יצירת TOKEN
+            var token = tokenService.GenerateToken(userEntity);
             // הוספה
             var savedProducer = await repository.AddItemAsync(newProducer);
             return mapper.Map<ProducerDto>(savedProducer);
