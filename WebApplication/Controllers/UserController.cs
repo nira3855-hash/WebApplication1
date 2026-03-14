@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Service.Dto;
 using Service.Interface;
 using System;
@@ -20,6 +21,7 @@ namespace WebApplication1.Controllers
 
         // GET: api/User
         [HttpGet]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<List<UserDto>>> Get()
         {
             // מחזיר את כל המשתמשים
@@ -29,6 +31,7 @@ namespace WebApplication1.Controllers
 
         // GET: api/User/5
         [HttpGet("{id}")]
+        [Authorize(Roles = "0")]
         public async Task<IActionResult> Get(int id)
         {
             try
@@ -75,7 +78,9 @@ namespace WebApplication1.Controllers
         }
 
         // PUT api/User/5
-        [HttpPut("{id}")]
+        [HttpPut("{id}") ]
+        [Authorize(Roles = "0,1")]
+
         public async Task<IActionResult> Put(int id, [FromBody] UserDto value)
         {
             try
@@ -98,6 +103,7 @@ namespace WebApplication1.Controllers
 
         // DELETE api/User/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "0,1")]
         public async Task<IActionResult> Delete(int id)
         {
             try

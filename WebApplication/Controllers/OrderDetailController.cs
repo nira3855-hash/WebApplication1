@@ -22,7 +22,7 @@ namespace WebApplication1.Controllers
 
         // GET: api/OrderDetail
         [HttpGet]
-        [Authorize(Roles = "0,1")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<List<OrderDetailDto>>> Get()
         {
             var list = await _orders.GetAllAsync();
@@ -31,6 +31,7 @@ namespace WebApplication1.Controllers
 
         // GET api/OrderDetail/5
         [HttpGet("{id}")]
+        [Authorize(Roles = "0,1")]
         public async Task<IActionResult> Get(int id)
         {
             try
@@ -49,6 +50,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpGet("user/{userId}")]
+        [Authorize(Roles = "0,1")]
         public async Task<IActionResult> GetByUser(int userId)
         {
             try
@@ -66,6 +68,7 @@ namespace WebApplication1.Controllers
             }
         }
         [HttpPost("add-to-cart")]
+        [Authorize(Roles = "0,1")]
         public async Task<IActionResult> AddToCart(OrderDetailCreateDto dto)
         {
             await _orders.AddToCartItemAsync(dto);
@@ -73,6 +76,7 @@ namespace WebApplication1.Controllers
         }
 
         [HttpPost("complete")]
+        [Authorize(Roles = "0,1")]
         public async Task<IActionResult> CompleteOrder(OrderDetailCreateDto dto)
         {
             await _orders.CompleteOrderItemAsync(dto);
@@ -81,6 +85,7 @@ namespace WebApplication1.Controllers
 
         // PUT api/OrderDetail/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "0,1")]
         public async Task<IActionResult> Put(int id, [FromBody] OrderDetailDto value)
         {
             try
@@ -100,6 +105,7 @@ namespace WebApplication1.Controllers
 
         // DELETE api/OrderDetail/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "0,1")]
         public async Task<IActionResult> Delete(int id)
         {
             try

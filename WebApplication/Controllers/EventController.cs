@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Repository.Entities;
 using Service.Dto;
 using Service.Interface;
@@ -21,6 +22,7 @@ namespace WebApplication1.Controllers
 
         // GET: api/Event
         [HttpGet]
+        [Authorize(Roles = "0,1")]
         public async Task<List<EventDto>> Get()
         {
             // מחזיר את כל האירועים (אסינכרוני)
@@ -29,6 +31,7 @@ namespace WebApplication1.Controllers
 
         // GET api/Event/5
         [HttpGet("{id}")]
+        [Authorize(Roles = "0,1")]
         public async Task<IActionResult> Get(int id)
         {
             try
@@ -49,6 +52,7 @@ namespace WebApplication1.Controllers
 
         // POST api/Event
         [HttpPost]
+        [Authorize(Roles = "1")]
         public async Task<EventDto> Post([FromForm] EventDto eventDto)
         {
             string imagePath = null;
@@ -76,6 +80,7 @@ namespace WebApplication1.Controllers
 
         // PUT api/Event/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "1")]
         public async Task<IActionResult> Put(int id, [FromBody] EventDto value)
         {
             try
@@ -98,6 +103,7 @@ namespace WebApplication1.Controllers
 
         // DELETE api/Event/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "1")]
         public async Task<IActionResult> Delete(int id)
         {
             try
@@ -118,6 +124,7 @@ namespace WebApplication1.Controllers
 
         // GET api/Event/producer/5
         [HttpGet("producer/{producerId}")]
+        [Authorize(Roles = "0,1")]
         public async Task<List<Event>> GetByProducer(int producerId)
         {
             // מחזיר את כל האירועים של מפיק מסוים
@@ -142,6 +149,7 @@ namespace WebApplication1.Controllers
 
         // GET api/Event/search?term=concert
         [HttpGet("search")]
+        [Authorize(Roles = "0,1")]
         public async Task<List<Event>> Search([FromQuery] string term)
         {
             // מחפש אירועים לפי מחרוזת חיפוש

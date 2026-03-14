@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Service.Dto;
 using Service.Interface;
 using System;
@@ -20,6 +21,7 @@ namespace WebApplication1.Controllers
 
         // GET: api/<HallController>
         [HttpGet]
+        [Authorize(Roles = "1")]
         public async Task<List<HallDto>> Get()
         {
             return await halls.GetAllAsync(); // קריאה אסינכרונית
@@ -27,6 +29,7 @@ namespace WebApplication1.Controllers
 
         // GET api/<HallController>/5
         [HttpGet("{id}")]
+        [Authorize(Roles = "1")]
         public async Task<IActionResult> Get(int id)
         {
             try
@@ -46,6 +49,7 @@ namespace WebApplication1.Controllers
 
         // POST api/<HallController>
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<HallDto> Post([FromBody] HallDto value)
         {
             return await halls.AddItemAsync(value); // קריאה אסינכרונית
@@ -53,6 +57,7 @@ namespace WebApplication1.Controllers
 
         // PUT api/<HallController>/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Put(int id, [FromBody] HallDto value)
         {
             try
@@ -74,6 +79,7 @@ namespace WebApplication1.Controllers
 
         // DELETE api/<HallController>/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             try

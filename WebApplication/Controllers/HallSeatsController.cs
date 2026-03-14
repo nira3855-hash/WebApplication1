@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Service.Dto;
 using Service.Interface;
@@ -22,6 +23,7 @@ namespace WebApplication1.Controllers
 
         // GET: api/HallSeat
         [HttpGet]
+        [Authorize(Roles = "0,1")]
         public async Task<ActionResult<List<HallSeatDto>>> Get()
         {
             var list = await _hallSeatService.GetAllAsync();
@@ -30,6 +32,7 @@ namespace WebApplication1.Controllers
 
         // GET api/HallSeat/5
         [HttpGet("{id}")]
+        [Authorize(Roles = "0,1")]
         public async Task<IActionResult> Get(int id)
         {
             try
@@ -47,6 +50,7 @@ namespace WebApplication1.Controllers
             }
         }
         [HttpGet("hall/{hallId}")]
+        [Authorize(Roles = "0,1")]
         public async Task<IActionResult> GetByHall(int hallId)
         {
             try
@@ -66,6 +70,7 @@ namespace WebApplication1.Controllers
 
         // POST api/HallSeat
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<HallSeatDto>> Post([FromBody] HallSeatDto value)
         {
             var added = await _hallSeatService.AddItemAsync(value);
@@ -74,6 +79,7 @@ namespace WebApplication1.Controllers
 
         // PUT api/HallSeat/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Put(int id, [FromBody] HallSeatDto value)
         {
             try
@@ -93,6 +99,7 @@ namespace WebApplication1.Controllers
 
         // DELETE api/HallSeat/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             try

@@ -59,6 +59,7 @@ namespace WebApplication1.Controllers
 
         // PUT: api/Producer/5
         [HttpPut("{id}")]
+        [Authorize(Roles = "0,1")]
         public async Task<IActionResult> Put(int id, [FromBody] ProducerDto value)
         {
             try
@@ -79,6 +80,7 @@ namespace WebApplication1.Controllers
 
         // DELETE: api/Producer/5
         [HttpDelete("{id}")]
+        [Authorize(Roles = "0,1")]
         public async Task<IActionResult> Delete(int id)
         {
             try
