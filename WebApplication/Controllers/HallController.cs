@@ -49,7 +49,7 @@ namespace WebApplication1.Controllers
 
         // POST api/<HallController>
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        //[Authorize(Roles = "Admin")]
         public async Task<HallDto> Post([FromBody] HallDto value)
         {
             return await halls.AddItemAsync(value); // קריאה אסינכרונית
