@@ -67,6 +67,24 @@ namespace WebApplication1.Controllers
                 });
             }
         }
+        [HttpGet("event/{eventId}")]
+        [Authorize(Roles = "0,1")]
+        public async Task<IActionResult> GetByEvent(int eventId)
+        {
+            try
+            {
+                var order = await _orders.GetOrdersByEventIdAsync(eventId);
+                return Ok(order);
+            }
+            catch
+            {
+                return NotFound(new
+                {
+                    ErrorCode = 404,
+                    Message = $"Order with ID {eventId} was not found."
+                });
+            }
+        }
         [HttpPost("add-to-cart")]
         [Authorize(Roles = "0,1")]
         public async Task<IActionResult> AddToCart(OrderDetailCreateDto dto)

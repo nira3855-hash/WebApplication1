@@ -50,7 +50,7 @@ namespace WebApplication1.Controllers
             }
         }
         [HttpGet("hall/{hallId}")]
-        [Authorize(Roles = "0,1")]
+        //[Authorize(Roles = "0,1")]
         public async Task<IActionResult> GetByHall(int hallId)
         {
             try
