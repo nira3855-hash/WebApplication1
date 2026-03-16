@@ -50,11 +50,19 @@ namespace WebApplication1.Controllers
         // POST: api/Producer
        
         [HttpPost]
-        [Authorize(Roles = "0")]
-        public async Task<ProducerDto> Create([FromBody] ProducerDto value)
+        //[Authorize(Roles = "0")]
+        public async Task<IActionResult> Create([FromBody] ProducerDto value)
         {
-            // יצירת מפיק חדש
-            return await _producers.AddItemAsync(value);
+            try
+            {
+                var result = await _producers.AddItemAsync(value);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                // מחזיר רק את הטקסט "הסיסמה שגויה"
+                return BadRequest(ex.Message);
+            }
         }
 
         // PUT: api/Producer/5
@@ -98,5 +106,6 @@ namespace WebApplication1.Controllers
                 });
             }
         }
+        
     }
 }

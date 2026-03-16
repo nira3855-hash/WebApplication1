@@ -37,7 +37,11 @@ namespace Service.Services
             // האם המשתמש קיים
             var userEntity = await users.GetByIdAsync(dto.UserId);
             if (userEntity == null) throw new Exception("User not found, register as user first");
-
+            // אנחנו בודקים אם הסיסמה שהגיעה מה-DTO תואמת לסיסמה ששמורה ב-Entity
+            if (!BCrypt.Net.BCrypt.Verify(dto.User.password, userEntity.password))
+            {
+                throw new Exception("הסיסמה שהזנת שגויה. אנא נסה שנית.");
+            }
             // האם הוא כבר מפיק
             var existingProducer = await repository.GetByIdAsync(dto.UserId);
             if (existingProducer != null) throw new Exception("User is already a producer");

@@ -11,6 +11,6 @@ namespace Service.Dto
         public int UserId {  get; set; }
         public string CompanyName { get; set; }
         public string? Bio { get; set; }
-        public UserDto User { get; set; }
+        public UserRegisterDto User { get; set; }
     }
 }
