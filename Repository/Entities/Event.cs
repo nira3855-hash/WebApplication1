@@ -13,12 +13,13 @@ namespace Repository.Entities
         public int Id {  get; set; }
         [ForeignKey("Producer")]
         public int ProducerID  { get; set; }
-        public Producer Producer { get; set; }//לדעתי לא צריך גם וגם
+        public Producer Producer { get; set; }
         public string Title {  get; set; }
         public DateTime EventDate {  get; set; }
         public string Location {  get; set; }
         public double BasePrice {  get; set; }
         public string Describe { get; set; }
+     
         [ForeignKey("Hall")]
         public int HallID { get; set; }
         public string ?ImageUrl { get; set; }

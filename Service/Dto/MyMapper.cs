@@ -16,7 +16,9 @@ namespace Service.Dto
         {
 
 
-            CreateMap<Event, EventDto>();//.ForMember("Image", x => x.MapFrom(y => fromStringToByte(y.ImageUrl)));
+            CreateMap<Event, EventDto>();
+                //.ForMember(dest => dest.TotalTickets,
+                //           opt => opt.MapFrom(src => src.Hall != null ? src.Hall.numOfSeats : 0));
             CreateMap<EventDto, Event>();
 
             CreateMap<UserLogin, User>();

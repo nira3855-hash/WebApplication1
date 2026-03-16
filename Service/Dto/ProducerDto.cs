@@ -12,5 +12,6 @@ namespace Service.Dto
         public string CompanyName { get; set; }
         public string? Bio { get; set; }
         public UserRegisterDto User { get; set; }
+        public string? Token { get; set; }
     }
 }

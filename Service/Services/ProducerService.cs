@@ -65,7 +65,9 @@ namespace Service.Services
             var token = tokenService.GenerateToken(userEntity);
             // הוספה
             var savedProducer = await repository.AddItemAsync(newProducer);
-            return mapper.Map<ProducerDto>(savedProducer);
+            var resultDto = mapper.Map<ProducerDto>(savedProducer);
+            resultDto.Token = token; // הוספת הטוקן החדש לתוצאה
+            return resultDto;
         }
 
         public bool IsValidEmail(string email)

@@ -18,7 +18,8 @@ namespace Service.Dto
         public string Location { get; set; }
         public double BasePrice { get; set; }
         public string Describe { get; set; }
-       
+        //public int TotalTickets { get; set; }
+        //public int SolidTickets { get; set; }
         public int HallID { get; set; }
         public string? ImageUrl { get; set; }
         public IFormFile? FileImage { get; set; }

@@ -82,7 +82,7 @@ namespace Service.Services
             var producer = await producerRepository.GetByIdAsync(producerId);
             if (producer == null)
                 throw new ArgumentException("המפיק לא קיים.");
-
+            var producerEvents = await eventRepository.GetByProducerIdAsync(producerId);
             return await eventRepository.GetByProducerIdAsync(producerId);
         }
 
