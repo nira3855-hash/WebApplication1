@@ -140,6 +140,32 @@ namespace WebApplication1.Controllers
                 });
             }
         }
+        [HttpPost("CompleteOrderSeats")]
+        public async Task<IActionResult> CompleteMultipleOrder([FromBody] CompleteMultipleSeatsDto dto)
+        {
+            try
+            {
+                await _orders.CompleteMultipleOrderAsync(dto);
+                return Ok("Seats booked successfully");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpPost("AddToCartSeats")]
+        public async Task<IActionResult> AddMultipleToCart([FromBody] CompleteMultipleSeatsDto dto)
+        {
+            try
+            {
+                await _orders.AddMultipleToCartAsync(dto);
+                return Ok("Seats booked successfully");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
     }
 }
