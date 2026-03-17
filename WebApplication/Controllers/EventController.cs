@@ -52,18 +52,21 @@ namespace WebApplication1.Controllers
 
         // POST api/Event
         [HttpPost]
-        //[Authorize(Roles = "1")]
+        [Authorize(Roles = "1")]
         public async Task<EventDto> Post([FromForm] EventDto eventDto)
         {
             string imagePath = null;
 
             if (eventDto.FileImage != null)
             {
-                string folder = Path.Combine(Directory.GetCurrentDirectory(),
-                "wwwroot/images");
+                // שימוש ב-Path.Combine נפרד לכל תיקייה כדי למנוע בעיות של לוכסנים
+                string folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+
+                // יצירת התיקייה אם היא לא קיימת
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
 
                 string fileName = Guid.NewGuid().ToString() + Path.GetExtension(eventDto.FileImage.FileName);
-
                 string fullPath = Path.Combine(folder, fileName);
 
                 using (var stream = new FileStream(fullPath, FileMode.Create))
@@ -71,8 +74,10 @@ namespace WebApplication1.Controllers
                     await eventDto.FileImage.CopyToAsync(stream);
                 }
 
+                // זה הנתיב שיישמר ב-DB: "/images/guid_name.jpg"
                 imagePath = "/images/" + fileName;
             }
+
             eventDto.ImageUrl = imagePath;
 
             return await events.AddEventAsync(eventDto);
@@ -81,8 +86,15 @@ namespace WebApplication1.Controllers
         // PUT api/Event/5
         [HttpPut("{id}")]
         //[Authorize(Roles = "1")]
-        public async Task<IActionResult> Put(int id, [FromBody] EventDto value)
+        public async Task<IActionResult> Put(int id, [FromForm] EventDto value)
         {
+            // כאן כדאי להוסיף את אותה לוגיקת שמירת תמונה שיש ב-Post
+            // כדי שאם המשתמש העלה תמונה חדשה בעריכה, היא תישמר ב-wwwroot
+            if (value.FileImage != null)
+            {
+                // ... לוגיקת שמירת הקובץ (כמו ב-Post) ...
+                // value.ImageUrl = "/images/" + fileName;
+            }
             try
             {
                 // מעדכן אירוע קיים (אסינכרוני)

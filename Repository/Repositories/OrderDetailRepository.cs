@@ -1,9 +1,10 @@
-﻿using Repository.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Repository.Entities;
 using Repository.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 
 namespace Repository.Repositories
 {
@@ -45,6 +46,28 @@ namespace Repository.Repositories
         {
             return await _context.OrderDetails
                 .Where(x => x.UserID == userId)
+                .ToListAsync();
+        }
+        public Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            //var transaction = _context.Database.BeginTransaction();
+            //return Task.FromResult(transaction as IDbContextTransaction);
+            return null;//צריך להחזיר את השורות שלמעלה במקום פשוט זה עשה לי שגיאות
+        }
+        public async Task<List<int>> GetBookedSeatsByEvent(int eventId, List<int> seatIds)
+        {
+            return await _context.OrderDetails
+                .Where(o => o.EventID == eventId && seatIds.Contains(o.HallSeatID))
+                .Select(o => o.HallSeatID)
+                .ToListAsync();
+        }
+
+
+
+        public async Task<List<OrderDetail>> GetByEventIdAsync(int eventId)
+        {
+            return await _context.OrderDetails
+                .Where(o => o.EventID == eventId && o.Status != OrderStatus.Cancelled)
                 .ToListAsync();
         }
         public async Task<OrderDetail> UpdateItemAsync(int id, OrderDetail item)

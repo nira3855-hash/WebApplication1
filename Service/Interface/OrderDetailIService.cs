@@ -23,7 +23,12 @@ namespace Service.Interface
         Task<List<OrderDetailDto>> GetAllAsync();
         Task<List<OrderDetailDto>> GetByUserIdAsync(int UserId);
 
+        Task<List<OrderDetailDto>> GetOrdersByEventIdAsync(int eventId);
+        Task<List<OrderDetailDto>> AddMultipleToCartAsync(CompleteMultipleSeatsDto dto);
+        Task<List<OrderDetailDto>> CompleteMultipleOrderAsync(CompleteMultipleSeatsDto dto);
+
         // מוחק פריט לפי ID
         Task DeleteItemAsync(int id);
+
     }
 }
