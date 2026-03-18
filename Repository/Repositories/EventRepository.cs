@@ -66,7 +66,7 @@ namespace Repository.Repositories
             return existingEvent;
         }
 
-        public async Task<List<Event>> GetByProducerIdAsync(int producerId)
+        public async Task<List<Event>> GetEventsByProducerIdAsync(int producerId)
         {
             return await _context.Events.Where(e => e.ProducerID == producerId).ToListAsync();
         }

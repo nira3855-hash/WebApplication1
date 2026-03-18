@@ -148,10 +148,10 @@ namespace WebApplication1.Controllers
         // GET api/Event/producer/5
         [HttpGet("producer/{producerId}")]
         [Authorize(Roles = "0,1")]
-        public async Task<List<Event>> GetByProducer(int producerId)
+        public async Task<List<ProducerEventDto>> GetByProducer(int producerId)
         {
             // מחזיר את כל האירועים של מפיק מסוים
-            return await events.GetEventsByProducerIdAsync(producerId);
+           return await events.GetEventsByProducerIdAsync(producerId);
         }
 
         // GET api/Event/date/2026-03-10

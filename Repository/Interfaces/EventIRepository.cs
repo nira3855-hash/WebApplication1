@@ -12,7 +12,7 @@ namespace Repository.Interfaces
         Task<Event> AddItemAsync(Event item);
         Task<Event> UpdateItemAsync(int id, Event item);
         Task DeleteItemAsync(int id);
-        Task<List<Event>> GetByProducerIdAsync(int producerId);
+        Task<List<Event>> GetEventsByProducerIdAsync(int producerId);
         Task<List<Event>> GetByDateAsync(DateTime date);
         Task<List<Event>> GetUpcomingEventsAsync();
         Task<List<Event>> SearchAsync(string searchTerm);

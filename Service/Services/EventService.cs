@@ -90,10 +90,10 @@ namespace Service.Services
             await eventRepository.UpdateItemAsync(id, mapper.Map<EventDto, Event>(item));
         }
 
-        public async Task<List<ProducerEventDto>> GetEventsByProducerAsync(int producerId)
+        public async Task<List<ProducerEventDto>> GetEventsByProducerIdAsync(int producerId)
         {
             // 1. שליפת האירועים מה-DB
-            var eventsList = await eventRepository.GetByProducerIdAsync(producerId);
+            var eventsList = await eventRepository.GetEventsByProducerIdAsync(producerId);
 
             // 2. מיפוי ל-DTO החדש (היורש)
             var dtos = mapper.Map<List<Event>, List<ProducerEventDto>>(eventsList);

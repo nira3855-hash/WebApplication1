@@ -24,7 +24,7 @@ namespace Service.Interface
         Task UpdateEventAsync(int id, EventDto item);
             //מ
         // מחזיר את כל האירועים של מפיק מסוים
-        Task<List<Event>> GetEventsByProducerIdAsync(int producerId);
+        Task<List<ProducerEventDto>> GetEventsByProducerIdAsync(int producerId);
 
         // מחזיר את כל האירועים בתאריך מסוים
         Task<List<Event>> GetEventsByDateAsync(DateTime date);

@@ -21,6 +21,7 @@ namespace Service.Dto
                 //           opt => opt.MapFrom(src => src.Hall != null ? src.Hall.numOfSeats : 0));
             CreateMap<EventDto, Event>();
             CreateMap<Event, ProducerEventDto>().ReverseMap();
+            CreateMap<ProducerEventDto,EventDto >().ReverseMap();
 
             CreateMap<UserLogin, User>();
             CreateMap<User, UserLogin>();
