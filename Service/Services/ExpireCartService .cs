@@ -24,7 +24,7 @@ namespace Service.Services
             while (!stoppingToken.IsCancellationRequested)
             {
                 await ExpireReservedTicketsAsync();
-                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
+                await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);// בדיקה כל שניה
             }
         }
 
@@ -39,7 +39,7 @@ namespace Service.Services
                 // בוחרים את כל המושבים שהסטטוס שלהם Reserved והזמן עבר
                 var expiredTickets = await context.OrderDetails
                     .Where(o => o.Status == OrderStatus.Reserved
-                             && o.SelectAt.AddMinutes(10) < now)
+                             && o.SelectAt.AddMinutes(10) < now)// מחיקת כל אלו אחרי 10 דקות
                     .ToListAsync();
 
                 if (expiredTickets.Any())

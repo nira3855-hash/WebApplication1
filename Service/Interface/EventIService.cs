@@ -41,6 +41,7 @@ namespace Service.Interface
         // מחזיר אירועים לפי אולם
         Task<List<Event>> GetEventsByHallIdAsync(int hallId);
 
-        // private ValidateEvent לא צריך להיות כאן
+        //מביאה את המקומות הכי טובים עבור כמות כרטיסים והעדפה באירוע מסוים
+        Task<List<HallSeatDto>> FindBestSeatsAsync(BestSeatsForEvent dto);
     }
 }

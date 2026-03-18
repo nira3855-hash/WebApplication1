@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 using Repository.Entities;
 using Repository.Interfaces;
 using Service.Dto;
@@ -6,6 +7,7 @@ using Service.Interface;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Service.Services
 {
@@ -44,109 +46,148 @@ namespace Service.Services
             if (!validShapes.Contains(hall.shape))
                 throw new ArgumentException("צורת האולם אינה תקינה.");
         }
-        //יצירת מראה מקומות של אולם מלבן
-        public List<HallSeat> GenerateRectangleHallSeatsWithPrice(HallDto hall)
-        {
-            List<HallSeat> seats = new List<HallSeat>();
-            int rows = 10; // מספר שורות
-            int seatsPerRow = hall.numOfSeats / rows;
+       
 
-            double baseAddPrice = 50; // מחיר מקסימום לקרבה לבמה
-            double decrementPerRow = baseAddPrice / rows; // מחיר יורד בשורה הבאה
 
-            int stageRow = 1; // הבמה תהיה בשורה 1
 
-            for (int row = 1; row <= rows; row++)
+    
+       
+            // יצירת רשימת השורות לפי התמונה (דוגמה לגוש שמאלי עליון - אולם ג')
+            List<SeatRow> theaterMap = new List<SeatRow>
             {
-                for (int seat = 1; seat <= seatsPerRow; seat++)
+            // שורה | התחלה | סוף | שם גוש | מחיר
+            new SeatRow { RowNumber = 1,  StartSeat = 12, EndSeat = 36 },
+            new SeatRow { RowNumber = 2,  StartSeat = 8, EndSeat = 41},
+            new SeatRow { RowNumber = 3,  StartSeat = 7,  EndSeat = 42 },
+            new SeatRow { RowNumber = 4,  StartSeat = 6,  EndSeat = 44 },
+            new SeatRow { RowNumber = 5,  StartSeat = 6,  EndSeat = 45 },
+            new SeatRow { RowNumber = 6,  StartSeat = 5,  EndSeat = 47 },
+            new SeatRow { RowNumber = 7, StartSeat = 5,  EndSeat = 48},
+            new SeatRow { RowNumber = 8,  StartSeat = 4, EndSeat = 48},
+            new SeatRow { RowNumber = 9,  StartSeat = 4, EndSeat = 48},
+            new SeatRow { RowNumber = 10,  StartSeat = 3,  EndSeat = 49 },
+            new SeatRow { RowNumber = 11,  StartSeat = 3,  EndSeat = 49 },
+            new SeatRow { RowNumber = 12,  StartSeat = 2,  EndSeat = 50 },
+            new SeatRow { RowNumber = 13,  StartSeat = 1,  EndSeat = 50 },
+            new SeatRow { RowNumber = 14, StartSeat = 1,  EndSeat = 50  },
+             new SeatRow { RowNumber = 15, StartSeat = 1,  EndSeat = 50 },
+            new SeatRow { RowNumber = 16,  StartSeat = 1,  EndSeat = 50 },
+            new SeatRow { RowNumber = 17,  StartSeat = 1,  EndSeat = 50 },
+            new SeatRow { RowNumber = 18,  StartSeat = 1,  EndSeat = 50 },
+            new SeatRow { RowNumber = 19,  StartSeat = 1,  EndSeat = 50 },
+            new SeatRow { RowNumber = 20, StartSeat = 1,  EndSeat = 50  },
+             new SeatRow { RowNumber = 21, StartSeat = 1,  EndSeat = 50 },
+            new SeatRow { RowNumber = 22,  StartSeat = 1,  EndSeat = 50 },
+            new SeatRow { RowNumber = 23,  StartSeat = 2,  EndSeat = 49 },
+            new SeatRow { RowNumber = 24,  StartSeat = 2,  EndSeat = 49 },
+            new SeatRow { RowNumber = 25,  StartSeat = 3,  EndSeat = 48 },
+            new SeatRow { RowNumber = 26, StartSeat = 3,  EndSeat = 48},
+             new SeatRow { RowNumber = 27, StartSeat = 4,  EndSeat = 47},
+            new SeatRow { RowNumber = 28,  StartSeat = 4,  EndSeat = 47},
+            new SeatRow { RowNumber = 29,  StartSeat = 4,  EndSeat = 47},
+            new SeatRow { RowNumber = 30,  StartSeat = 6,  EndSeat = 45 }
+
+        };
+
+        private List<HallSeat> GenerateAuditoriumHallSeats(HallDto hall)
+        {
+            var seatsList = new List<HallSeat>();
+
+            // הגדרת המפה המדויקת לפי התמונה
+            var theaterMap = new List<SeatRow>
+    {
+                   // שורה | התחלה | סוף | שם גוש | מחיר
+            new SeatRow { RowNumber = 1,  StartSeat = 12, EndSeat = 36 },
+            new SeatRow { RowNumber = 2,  StartSeat = 8, EndSeat = 41},
+            new SeatRow { RowNumber = 3,  StartSeat = 7,  EndSeat = 42 },
+            new SeatRow { RowNumber = 4,  StartSeat = 6,  EndSeat = 44 },
+            new SeatRow { RowNumber = 5,  StartSeat = 6,  EndSeat = 45 },
+            new SeatRow { RowNumber = 6,  StartSeat = 5,  EndSeat = 47 },
+            new SeatRow { RowNumber = 7, StartSeat = 5,  EndSeat = 48},
+            new SeatRow { RowNumber = 8,  StartSeat = 4, EndSeat = 48},
+            new SeatRow { RowNumber = 9,  StartSeat = 4, EndSeat = 48},
+            new SeatRow { RowNumber = 10,  StartSeat = 3,  EndSeat = 49 },
+            new SeatRow { RowNumber = 11,  StartSeat = 3,  EndSeat = 49 },
+            new SeatRow { RowNumber = 12,  StartSeat = 2,  EndSeat = 50 },
+            new SeatRow { RowNumber = 13,  StartSeat = 1,  EndSeat = 50 },
+            new SeatRow { RowNumber = 14, StartSeat = 1,  EndSeat = 50  },
+             new SeatRow { RowNumber = 15, StartSeat = 1,  EndSeat = 50 },
+            new SeatRow { RowNumber = 16,  StartSeat = 1,  EndSeat = 50 },
+            new SeatRow { RowNumber = 17,  StartSeat = 1,  EndSeat = 50 },
+            new SeatRow { RowNumber = 18,  StartSeat = 1,  EndSeat = 50 },
+            new SeatRow { RowNumber = 19,  StartSeat = 1,  EndSeat = 50 },
+            new SeatRow { RowNumber = 20, StartSeat = 1,  EndSeat = 50  },
+             new SeatRow { RowNumber = 21, StartSeat = 1,  EndSeat = 50 },
+            new SeatRow { RowNumber = 22,  StartSeat = 1,  EndSeat = 50 },
+            new SeatRow { RowNumber = 23,  StartSeat = 2,  EndSeat = 49 },
+            new SeatRow { RowNumber = 24,  StartSeat = 2,  EndSeat = 49 },
+            new SeatRow { RowNumber = 25,  StartSeat = 3,  EndSeat = 48 },
+            new SeatRow { RowNumber = 26, StartSeat = 3,  EndSeat = 48},
+             new SeatRow { RowNumber = 27, StartSeat = 4,  EndSeat = 47},
+            new SeatRow { RowNumber = 28,  StartSeat = 4,  EndSeat = 47},
+            new SeatRow { RowNumber = 29,  StartSeat = 4,  EndSeat = 47},
+            new SeatRow { RowNumber = 30,  StartSeat = 6,  EndSeat = 45 }
+           };
+
+            foreach (var row in theaterMap)
+            {
+                for (int s = row.StartSeat; s <= row.EndSeat; s++)
                 {
-                    // חישוב תוספת מחיר לפי קרבה לבמה
-                    double addPrice = Math.Max(0, baseAddPrice - decrementPerRow * (row - stageRow));
+                    string typePlace = "";
+                    double addPrice = 0.0;
+                        // חישוב תוספת מחיר לפי הלוגיקה שלך
+                    if (row.RowNumber <= 13 && s <= 16)
+                    {
+                         typePlace = "Stage left";// דוגמה לתוספת מחיר לגוש השמאלי
+                        addPrice = 50.0;
+                    }
+                    if (row.RowNumber <= 13 && s  <=30&& s > 16)
+                    {
+                        typePlace = "Stage middle";// דוגמה לתוספת מחיר לגוש האמצעי
+                        addPrice = 70.0;
+                    }
+                    if (row.RowNumber <= 13&&s > 30)
+                    {
+                        typePlace = "Stage right";// דוגמה לתוספת מחיר לגוש הימני
+                        addPrice = 50.0; 
+                    }
+                    if (row.RowNumber > 13 && s <= 16)
+                    {
+                        typePlace = "left";// דוגמה לתוספת מחיר לגוש הימני
+                        addPrice = 0.0;
+                    }
+                    if (row.RowNumber > 13 && s <= 30 && s > 16)
+                    {
+                        typePlace = "middle";// דוגמה לתוספת מחיר לגוש האמצעי
+                        addPrice = 30.0;
 
-                    string typeOfPlace = row == stageRow ? "Stage" : "Normal";
-
-                    seats.Add(new HallSeat
+                    }
+                    if (row.RowNumber > 13 && s > 30)
+                    {
+                        typePlace = "right"; // דוגמה לתוספת מחיר לגוש הימני
+                    }
+                    seatsList.Add(new HallSeat
                     {
                         HallID = hall.Id,
-                        RowNumber = row,
-                        SeatNumber = seat,
-                        AddPrice = addPrice,
-                        TypeOfPlace = typeOfPlace
+                        RowNumber = row.RowNumber,
+                        SeatNumber = s,
+                        AddPrice = (double)addPrice,
+                        TypeOfPlace = typePlace
                     });
+                    }
                 }
-            }
-            return seats;
+            return seatsList;
         }
-        //צורת אודיטוריום
-        public List<HallSeat>  GenerateAuditoriumHallSeats(HallDto hall)
-        {
-            List<HallSeat> seats = new List<HallSeat>();
-            int totalSeats = hall.numOfSeats;
-            int rows = 25;          // מספר שורות (טריבונה)
-            int seatsPerRow = totalSeats / rows;
 
-            int stageRow = 1;       // הבמה בחזית (שורה 1)
-            double stagePrice = 100;
-            double normalPrice = 0;
+            
+        
 
-            for (int row = 1; row <= rows; row++)
-            {
-                // אפשר לעשות מעט עקומה כך שהכיסאות במרכז יותר קרובים
-                int offset = (rows - row) / 2; // למרכז מעט curve
+    
 
-                for (int seat = 1; seat <= seatsPerRow; seat++)
-                {
-                    string typeOfPlace = row == stageRow ? "Stage" : "Normal";
-                    double addPrice = typeOfPlace == "Stage" ? stagePrice : normalPrice;
 
-                    seats.Add(new HallSeat
-                    {
-                        HallID = hall.Id ,
-                        RowNumber = row,
-                        SeatNumber = seat,
-                        AddPrice = addPrice,
-                        TypeOfPlace = typeOfPlace
-                    });
-                }
-            }
-            return seats;
-        }
-        //יצירת מקומות באולם בצורה עגולה עם במה באמצע
-        private List<HallSeat> GenerateCircularHallSeatsWithStagePrice(HallDto hall)
-        {
-            List<HallSeat> seats = new List<HallSeat>();
-            int rows = 10; // מספר שורות
-            int seatsPerRow = hall.numOfSeats / rows;
 
-            double stagePrice = 50;     // תוספת מחיר לכיסאות של הבמה
-            double normalPrice = 0;      // תוספת מחיר לכיסאות רגילים
 
-            int stageRow = 1; // השורה הראשונה היא הבמה
 
-            for (int row = 1; row <= rows; row++)
-            {
-                for (int seat = 1; seat <= seatsPerRow; seat++)
-                {
-                    // סוג המקום
-                    string typeOfPlace = row == stageRow ? "Stage" : "Normal";
-
-                    // חישוב תוספת מחיר לפי סוג המקום
-                    double addPrice = typeOfPlace == "Stage" ? stagePrice : normalPrice;
-
-                    seats.Add(new HallSeat
-                    {
-                        HallID = hall.Id ,
-                        RowNumber = row,
-                        SeatNumber = seat,
-                        AddPrice = addPrice,
-                        TypeOfPlace = typeOfPlace
-                    });
-                   
-                }
-               
-            }
-            return seats;
-        }
         public async Task<HallDto> AddItemAsync(HallDto item)
         {
             ValidateHall(item);
@@ -157,15 +198,15 @@ namespace Service.Services
             switch (item.shape)
             {
                 case "Circle":
-                    seats=GenerateCircularHallSeatsWithStagePrice(item);
+                    //seats = GenerateCircularHallSeatsWithStagePrice(item);
                     break;
 
                 case "Auditorium":
-                    seats= GenerateAuditoriumHallSeats(item);
+                    seats = GenerateAuditoriumHallSeats(item);
                     break;
 
                 default:
-                    seats=GenerateRectangleHallSeatsWithPrice(item); // למשל ריבוע/Rectangle
+                    //seats = GenerateRectangleHallSeatsWithPrice(item); // למשל ריבוע/Rectangle
                     break;
             }
             this.seats.AddRangeAsync(seats);
@@ -210,5 +251,6 @@ namespace Service.Services
 
             await repository.UpdateItemAsync(id, hall);
         }
+
     }
 }

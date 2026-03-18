@@ -48,7 +48,43 @@ namespace WebApplication1.Controllers
                 });
             }
         }
-
+         
+        [HttpGet("getRealOrdersByUser/{userId}")]
+        //[Authorize(Roles = "0")]
+        public async Task<IActionResult> GetRealOrdersByUser(int userId)
+        {
+            try
+            {
+                var order = await _orders.GetRealOrdersGroupedByEvent(userId);
+                return Ok(order);
+            }
+            catch
+            {
+                return NotFound(new
+                {
+                    ErrorCode = 404,
+                    Message = $"Order with ID {userId} was not found."
+                });
+            }
+        }
+        [HttpGet("getCartByUser/{userId}")]
+        //[Authorize(Roles = "0")]
+        public async Task<IActionResult> GetCartByUser(int userId)
+        {
+            try
+            {
+                var order = await _orders.GetCartGroupedByEvent(userId);
+                return Ok(order);
+            }
+            catch
+            {
+                return NotFound(new
+                {
+                    ErrorCode = 404,
+                    Message = $"Order with ID {userId} was not found."
+                });
+            }
+        }
         [HttpGet("user/{userId}")]
         [Authorize(Roles = "0,1")]
         public async Task<IActionResult> GetByUser(int userId)
@@ -67,24 +103,24 @@ namespace WebApplication1.Controllers
                 });
             }
         }
-        //[HttpGet("event/{eventId}")]
-        //[Authorize(Roles = "0,1")]
-        //public async Task<IActionResult> GetByEvent(int eventId)
-        //{
-        //    try
-        //    {
-        //        var order = await _orders.GetOrdersByEventIdAsync(eventId);
-        //        return Ok(order);
-        //    }
-        //    catch
-        //    {
-        //        return NotFound(new
-        //        {
-        //            ErrorCode = 404,
-        //            Message = $"Order with ID {eventId} was not found."
-        //        });
-        //    }
-        //}
+        [HttpGet("event/{eventId}")]
+        [Authorize(Roles = "0,1")]
+        public async Task<IActionResult> GetByEvent(int eventId)
+        {
+            try
+            {
+                var order = await _orders.GetOrdersByEventIdAsync(eventId);
+                return Ok(order);
+            }
+            catch
+            {
+                return NotFound(new
+                {
+                    ErrorCode = 404,
+                    Message = $"Order with ID {eventId} was not found."
+                });
+            }
+        }
         [HttpPost("add-to-cart")]
         [Authorize(Roles = "0,1")]
         public async Task<IActionResult> AddToCart(OrderDetailCreateDto dto)
@@ -101,6 +137,14 @@ namespace WebApplication1.Controllers
             return Ok();
         }
 
+
+        [HttpGet("my-orders{userId}")]
+
+
+        //public async Task<List<UserOrdersByEventDto>> GetMyOrders(int userId)
+        //{     
+        //    return await _orders.GetUserOrdersGrouped(userId);
+        //}
         // PUT api/OrderDetail/5
         [HttpPut("{id}")]
         [Authorize(Roles = "0,1")]
