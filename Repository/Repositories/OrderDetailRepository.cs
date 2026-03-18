@@ -86,8 +86,15 @@ namespace Repository.Repositories
                 .Select(o => o.HallSeatID)
                 .ToListAsync();
         }
+        public async Task<List<OrderDetail>> GetBookedSeatsOrderByEvent(int eventId, List<int> seatIds)
+        {
+            return await _context.OrderDetails
+                .Where(o => o.EventID == eventId && seatIds.Contains(o.HallSeatID))
+                .Select(o => o)
+                .ToListAsync();
+        }
 
-  
+
 
         public async Task<List<OrderDetail>> GetByEventIdAsync(int eventId)
         {

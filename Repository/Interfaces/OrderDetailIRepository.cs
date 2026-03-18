@@ -15,5 +15,6 @@ namespace Repository.Interfaces
         Task<List<OrderDetail>> GetRealOrdersAsync(int userId);
         Task<List<OrderDetail>> GetReservedSeatsByUser(int userId, int eventId);
         Task<List<OrderDetail>> UpdateItemsAsyncs(List<OrderDetail> items);
+        Task<List<OrderDetail>> GetBookedSeatsOrderByEvent(int eventId, List<int> seatIds);
     }
 }

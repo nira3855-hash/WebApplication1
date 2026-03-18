@@ -30,9 +30,10 @@ namespace Service.Services
             this.repository = repository;
             this.mapper = mapper;
         }
-
+        //  מוסיפה לסל קניות  פריט אחד
         public async Task<OrderDetailDto> AddToCartItemAsync(OrderDetailCreateDto item)
         {
+            // האם קיים מושב כזה שהוזמן בארוע הזה
             var exists = (await repository.GetAllAsync())
                 .FirstOrDefault(o => o.EventID == item.EventID
                                   && o.HallSeatID == item.HallSeatID
@@ -51,7 +52,7 @@ namespace Service.Services
             var saved = await repository.AddItemAsync(entity);
             return mapper.Map<OrderDetailDto>(saved);
         }
-
+        //מחזירה סל קניות מקובץ לפי אירוע של לקוח מסוים
         public async Task<List<UserOrdersByEventDto>> GetCartGroupedByEvent(int userId)
         {
             var cartItems = await repository.GetCartAsync(userId);
@@ -68,7 +69,7 @@ namespace Service.Services
 
             return grouped.ToList();
         }
-
+        //מחזירה את ההזמנות של לקוח מקובצות לפי אירוע
         public async Task<List<UserOrdersByEventDto>> GetRealOrdersGroupedByEvent(int userId)
         {
             var cartItems = await repository.GetRealOrdersAsync(userId);
@@ -85,7 +86,7 @@ namespace Service.Services
 
             return grouped.ToList();
         }
-
+        //הזמנה של מושב באירוע
         public async Task<OrderDetailDto> CompleteOrderItemAsync(OrderDetailCreateDto item)
         {
             var exists = (await repository.GetAllAsync())
@@ -106,7 +107,7 @@ namespace Service.Services
             var saved = await repository.AddItemAsync(entity);
             return mapper.Map<OrderDetailDto>(saved);
         }
-
+        //מחיקה של מושב
         public async Task DeleteItemAsync(int id)
         {
             var order = await repository.GetByIdAsync(id);
@@ -115,7 +116,7 @@ namespace Service.Services
 
             await repository.DeleteItemAsync(id);
         }
-
+        //חישוב המחיר
         public async Task<double> CalculatePriceAsync(int eventId, int seatId)
         {
             var eventObj = await eventRepository.GetByIdAsync(eventId);
@@ -126,13 +127,13 @@ namespace Service.Services
 
             return eventObj.BasePrice + seatObj.AddPrice;
         }
-
+        //מחזירה את כל ההזמנות
         public async Task<List<OrderDetailDto>> GetAllAsync()
         {
             var list = await repository.GetAllAsync();
             return mapper.Map<List<OrderDetail>, List<OrderDetailDto>>(list);
         }
-
+        //ביטול פריט מהסל 
         public async Task CancelReservationAsync(int userId, int orderDetailId)
         {
             var item = await repository.GetByIdAsync(orderDetailId);
@@ -141,7 +142,7 @@ namespace Service.Services
 
             await repository.DeleteItemAsync(orderDetailId);
         }
-
+        //מחזירה הזמנות של לקוח מסוים
         public async Task<List<OrderDetailDto>> GetByUserIdAsync(int id)
         {
             var order = await repository.GetByUserIdAsync(id);
@@ -150,7 +151,7 @@ namespace Service.Services
 
             return mapper.Map<List<OrderDetail>, List<OrderDetailDto>>(order);
         }
-
+        //מחזירה לפי ID 
         public async Task<OrderDetailDto> GetByIdAsync(int id)
         {
             var order = await repository.GetByIdAsync(id);
@@ -159,13 +160,13 @@ namespace Service.Services
 
             return mapper.Map<OrderDetail, OrderDetailDto>(order);
         }
-
+        //מחזירה הזמנות של אירוע מסוים
         public async Task<List<OrderDetailDto>> GetOrdersByEventIdAsync(int eventId)
         {
             var orders = await repository.GetByEventIdAsync(eventId);
             return mapper.Map<List<OrderDetail>, List<OrderDetailDto>>(orders);
         }
-
+        //הכנסת רשימת הזמנות באופן אטומי לסל
         public async Task<List<OrderDetailDto>> AddMultipleToCartAsync(CompleteMultipleSeatsDto dto)
         {
             var result = new List<OrderDetailDto>();
@@ -206,25 +207,35 @@ namespace Service.Services
 
             return result;
         }
-
+        //הכנסת רשימת הזמנות באופן אטומי אם הם נמצאות בסל שלו כולם אז הופך אותם להזמנה
         public async Task<List<OrderDetailDto>> CompleteMultipleOrderAsync(CompleteMultipleSeatsDto dto)
         {
+            //
             if (dto.HallSeatIds == null || !dto.HallSeatIds.Any())
                 throw new Exception("No seats selected");
 
             var eventObj = await eventRepository.GetByIdAsync(dto.EventId);
             if (eventObj == null)
                 throw new Exception("Event not found");
-
+            //מושבים בסל של הלקוח הזה
             var userCartSeats = await repository.GetReservedSeatsByUser(dto.UserId, dto.EventId);
-            var allBookedSeats = await repository.GetBookedSeatsByEvent(dto.EventId, dto.HallSeatIds);
+            // מושבים שנתפסו לאירוע הזה
+            var allBookedSeats = await repository.GetBookedSeatsOrderByEvent(dto.EventId, dto.HallSeatIds);
+            //  מושבים שנמצאים גם בסל שלו
             var missingInCart = dto.HallSeatIds.Except(userCartSeats.Select(s => s.HallSeatID)).ToList();
-            var partiallyBooked = dto.HallSeatIds.Intersect(allBookedSeats).ToList();
-
-            if (partiallyBooked.Any())
-                throw new Exception($"Some seats are already reserved or sold: {string.Join(",", partiallyBooked)}");
-
+           //האם יש מושבים שמורים עבור משהוא אחר
+           
+            var bookedByOthers = allBookedSeats
+                  .Where(o => dto.HallSeatIds.Contains(o.HallSeatID)
+             && o.UserID != dto.UserId
+             && (o.Status == OrderStatus.Reserved || o.Status == OrderStatus.Sold))
+                .Select(o => o.HallSeatID)
+                       .ToList();
+            if (bookedByOthers.Any())
+                throw new Exception($"Some seats are already reserved or sold: {string.Join(",", bookedByOthers)}");
+            //בודק האם כל המושבים שבחר נמצאים בסל
             bool allInCart = !missingInCart.Any();
+           //האם כל המושבים פנויים
             bool allFree = missingInCart.Count == dto.HallSeatIds.Count;
 
             if (!allInCart && !allFree)
@@ -241,8 +252,8 @@ namespace Service.Services
                     cartItem.PriceAtPurchase = await CalculatePriceAsync(dto.EventId, seatId);
                     cartItem.SelectAt = DateTime.Now;
 
-                    var updated = await repository.UpdateItemsAsyncs(new List<OrderDetail> { cartItem });
-                    result.Add(mapper.Map<OrderDetailDto>(updated.First()));
+                    var updated = await repository.UpdateItemAsync(cartItem.Id, cartItem );
+                    result.Add(mapper.Map<OrderDetailDto>(updated));
                 }
             }
             else if (allFree)
@@ -268,7 +279,7 @@ namespace Service.Services
 
             return result;
         }
-
+        //עדכון פריט 
         public async Task UpdateItemAsync(int id, OrderDetailDto item)
         {
             var order = await repository.GetByIdAsync(id);
