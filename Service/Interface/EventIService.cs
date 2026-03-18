@@ -22,7 +22,7 @@ namespace Service.Interface
 
         // מעדכן אירוע קיים לפי ID
         Task UpdateEventAsync(int id, EventDto item);
-
+            //מ
         // מחזיר את כל האירועים של מפיק מסוים
         Task<List<Event>> GetEventsByProducerIdAsync(int producerId);
 
