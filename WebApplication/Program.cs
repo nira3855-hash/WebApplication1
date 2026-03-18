@@ -117,14 +117,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseCors("AllowReactApp");
+app.UseStaticFiles();
 
 app.UseRouting();
 
-// ה-CORS חייב להיות כאן - אחרי ה-Routing ולפני ה-Authentication
-app.UseCors("AllowReactApp");
+
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
 app.UseAuthentication(); // אימות
 app.UseAuthorization();  // הרשאות
 

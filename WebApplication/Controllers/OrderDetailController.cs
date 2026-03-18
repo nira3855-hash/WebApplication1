@@ -6,6 +6,7 @@ using Service.Interface;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Repository.Entities;
 
 namespace WebApplication1.Controllers
 {
@@ -138,7 +139,7 @@ namespace WebApplication1.Controllers
         }
 
 
-        [HttpGet("my-orders{userId}")]
+        //[HttpGet("my-orders{userId}")]
 
 
         //public async Task<List<UserOrdersByEventDto>> GetMyOrders(int userId)
@@ -181,6 +182,27 @@ namespace WebApplication1.Controllers
                 {
                     ErrorCode = 404,
                     Message = $"Order with ID {id} was not found."
+                });
+            }
+        }
+
+
+
+        [HttpDelete("reservation/{userId}/{orderDetailId}")]
+        //[Authorize(Roles = "0,1")]
+        public async Task<IActionResult> DeleteReservation(int userId, int orderDetailId)
+        {
+            try
+            {
+                await _orders.CancelReservationAsync( userId,  orderDetailId);
+                return Ok();
+            }
+            catch
+            {
+                return NotFound(new
+                {
+                    ErrorCode = 404,
+                    Message = $"Order with ID {userId} was not found."
                 });
             }
         }

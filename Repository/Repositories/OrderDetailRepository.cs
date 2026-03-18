@@ -1,11 +1,16 @@
-﻿using Repository.Entities;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Repository.Entities;
 using Repository.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+<<<<<<< HEAD
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.Storage;
+=======
+>>>>>>> d3894643558438e162c47971841982775f4b505d
 
 namespace Repository.Repositories
 {
@@ -49,6 +54,7 @@ namespace Repository.Repositories
                 .Where(x => x.UserID == userId)
                 .ToListAsync();
         }
+<<<<<<< HEAD
        
         public Task<IDbContextTransaction> BeginTransactionAsync()
         {
@@ -78,6 +84,13 @@ namespace Repository.Repositories
                 .Include(o => o.HallSeat)
                 .Include(o => o.Event)
                 .ToListAsync();
+=======
+        public Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            //var transaction = _context.Database.BeginTransaction();
+            //return Task.FromResult(transaction as IDbContextTransaction);
+            return null;//צריך להחזיר את השורות שלמעלה במקום פשוט זה עשה לי שגיאות
+>>>>>>> d3894643558438e162c47971841982775f4b505d
         }
         public async Task<List<int>> GetBookedSeatsByEvent(int eventId, List<int> seatIds)
         {
@@ -87,7 +100,11 @@ namespace Repository.Repositories
                 .ToListAsync();
         }
 
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> d3894643558438e162c47971841982775f4b505d
 
         public async Task<List<OrderDetail>> GetByEventIdAsync(int eventId)
         {

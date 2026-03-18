@@ -31,5 +31,6 @@ namespace Service.Interface
        // Task<List<UserOrdersByEventDto>> GetUserOrdersGrouped(int userId);
         Task<List<UserOrdersByEventDto>> GetRealOrdersGroupedByEvent(int userId);
         Task<List<UserOrdersByEventDto>> GetCartGroupedByEvent(int userId);
+        Task CancelReservationAsync(int userId, int orderDetailId);
     }
 }

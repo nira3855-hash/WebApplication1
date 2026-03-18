@@ -11,5 +11,9 @@ namespace Service.Dto
         public int UserId { get; set; }          // מזהה המשתמש
         public int EventId { get; set; }         // מזהה האירוע
         public List<int> HallSeatIds { get; set; } = new List<int>();  // רשימת המושבים
+<<<<<<< HEAD
+=======
+
+>>>>>>> d3894643558438e162c47971841982775f4b505d
     }
 }
