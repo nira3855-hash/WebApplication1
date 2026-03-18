@@ -16,16 +16,20 @@ namespace Repository.Entities
     public class OrderDetail
     {
         public int Id { get; set; }
-        [ForeignKey("User")]
+        //[ForeignKey("UserID")]
         public int UserID { get; set; }
-        [ForeignKey("Event")]
+       
         public int EventID { get; set; }
-        [ForeignKey("HallSeat")]
+        
         public int HallSeatID { get; set; }
         public double PriceAtPurchase { get; set; } 
         public OrderStatus Status {  get; set; }
         public DateTime SelectAt {  get; set; }
 
+      
+        public HallSeat HallSeat { get; set; }// 
+      
+        public Event Event { get; set; }         // 👈 הוספה
         //public string? FakeCardNumber { get; set; } // לדוגמה: "**** **** **** 1234"
         //public string? FakeCVV { get; set; }        // לדוגמה: "123"
         //public string? FakeCardHolderName { get; set; } // לדוגמה: "John Doe"

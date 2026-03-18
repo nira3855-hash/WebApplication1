@@ -7,6 +7,7 @@ using Service.Interface;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace Service.Services
 {
@@ -157,8 +158,11 @@ namespace Service.Services
                 throw new ArgumentException("האולם לא קיים.");
         }
 
-        public async Task<List<HallSeatDto>> FindBestSeatsAsync(int eventId, int count, bool preferPremium)
+        public async Task<List<HallSeatDto>> FindBestSeatsAsync(BestSeatsForEvent dto)
         {
+            int eventId = dto.eventId;
+            int count = dto.count;
+            bool preferPremium = dto.preferPremium;
             //  שליפת הנתונים מה-Repositories (עם התיקון ל-GetAll שדיברנו עליו)
             var eventObj = await eventRepository.GetByIdAsync(eventId);
             if (eventObj == null) return new List<HallSeatDto>();
@@ -176,11 +180,11 @@ namespace Service.Services
 
             //  חלוקה לקבוצות לפי סוג (ממוינים מראש לפי שורה וכיסא)
             var premiumSeats = freeSeats
-                .Where(s => s.TypeOfPlace != "Regular")
+                .Where(s => s.TypeOfPlace != "right"|| s.TypeOfPlace != "left")
                 .OrderBy(s => s.RowNumber).ThenBy(s => s.SeatNumber).ToList();
 
             var regularSeats = freeSeats
-                .Where(s => s.TypeOfPlace == "Regular")
+                .Where(s => s.TypeOfPlace == "left"|| s.TypeOfPlace != "right")
                 .OrderBy(s => s.RowNumber).ThenBy(s => s.SeatNumber).ToList();
 
             List<HallSeat> finalSelection = null;
@@ -226,69 +230,150 @@ namespace Service.Services
 
         private List<HallSeat> FindSequentialInRow(List<HallSeat> seats, int count)
         {
-            // קיבוץ המושבים לפי מספר שורה
             var rows = seats.GroupBy(s => s.RowNumber);
+            List<HallSeat> bestCandidate = null;
+            double bestScore = double.MaxValue;
 
+            int totalRows = seats.Max(s => s.RowNumber); // או להביא מבחוץ
+           
             foreach (var row in rows)
             {
-                // סידור המושבים בשורה לפי המספר שלהם (למשל 1, 2, 4, 5...)
                 var rowSeats = row.OrderBy(s => s.SeatNumber).ToList();
-
-                // אם אין מספיק מושבים פנויים בשורה הזו, דלג
                 if (rowSeats.Count < count) continue;
+
+                // חישוב אמצע השורה
+                double middle = (rowSeats.First().SeatNumber + rowSeats.Last().SeatNumber) / 2.0;
 
                 for (int i = 0; i <= rowSeats.Count - count; i++)
                 {
-                    // לוקחים קבוצה של כיסאות בגודל שהמשתמש ביקש
                     var candidate = rowSeats.Skip(i).Take(count).ToList();
 
-                    // בדיקה: האם ההפרש בין הכיסא האחרון לראשון תואם לכמות?
-                    // (למשל: כיסא 10 פחות כיסא 8 שווה 2, זה אומר שהם 8, 9, 10 - רצף מושלם)
-                    if (candidate.Last().SeatNumber - candidate.First().SeatNumber == count - 1)
+                    // בדיקה שזה רצף אמיתי
+                    if (candidate.Last().SeatNumber - candidate.First().SeatNumber != count - 1)
+                        continue;
+
+                    // חישוב מרכז הרצף
+                    double candidateMiddle = (candidate.First().SeatNumber + candidate.Last().SeatNumber) / 2.0;
+
+                    // כמה הוא רחוק מהאמצע
+                    double distanceFromCenter = Math.Abs(candidateMiddle - middle);
+
+                    // ניקוד (אפשר גם להוסיף משקל לשורה אם רוצים)
+                    // 🎯 מרכז הרצף
+
+                    // 🎯 מרכז השורה (אמיתי)
+                    int realMin = rowSeats.Min(s => s.SeatNumber);
+                    int realMax = rowSeats.Max(s => s.SeatNumber);
+                    double rowMiddle = (realMin + realMax) / 2.0;
+
+                    // 🎯 מרחק מהמרכז
+                    double centerDistance = Math.Abs(candidateMiddle - rowMiddle);
+
+                    // נרמול
+                    double maxDistance = rowMiddle;
+                    double normalizedCenter = centerDistance / maxDistance;
+
+                    // 🎯 נרמול שורה (קדימה = טוב)
+                    double normalizedRow = (double)row.Key / totalRows;
+
+                    // 🎯 score — שורה יותר חשובה!
+                    double score = normalizedRow * 0.7 + normalizedCenter * 0.3;
+
+                    // שמירת הכי טוב
+                    if (score < bestScore)
                     {
-                        return candidate; // מצאנו רצף!
+                        bestScore = score;
+                        bestCandidate = candidate;
                     }
                 }
             }
-            return null; // לא נמצא רצף באף שורה
+
+            return bestCandidate;
         }
 
         private List<HallSeat> FindBestBlock(List<HallSeat> seats, int count)
         {
-            // 1. ננסה לחלק את הקבוצה לשתי שורות (למשל 4 אנשים -> 2 ו-2)
-            int firstRowSize = (int)Math.Ceiling(count / 2.0);
-            int secondRowSize = count - firstRowSize;
+            var rows = seats.GroupBy(s => s.RowNumber).OrderBy(g => g.Key).ToList();
 
-            var rows = seats.GroupBy(s => s.RowNumber).OrderBy(r => r.Key).ToList();
+            List<HallSeat> bestCandidate = null;
+            double bestScore = double.MaxValue;
+
+            int totalRows = rows.Count;
+
+            // ⚠️ מרכז קבוע של שורה (לא לפי מושבים פנויים!)
+            int minSeatNumber = 1;
+            int maxSeatNumber = 50;
+            double rowMiddle = (minSeatNumber + maxSeatNumber) / 2.0;
 
             for (int i = 0; i < rows.Count - 1; i++)
             {
-                var currentRow = rows[i].OrderBy(s => s.SeatNumber).ToList();
-                var nextRow = rows[i + 1].OrderBy(s => s.SeatNumber).ToList();
+                var row1 = rows[i].OrderBy(s => s.SeatNumber).ToList();
+                var row2 = rows[i + 1].OrderBy(s => s.SeatNumber).ToList();
 
-                // נחפש רצף בשורה הנוכחית עבור החצי הראשון
-                for (int j = 0; j <= currentRow.Count - firstRowSize; j++)
+                int half1 = count / 2;
+                int half2 = count - half1;
+
+                var candidates1 = GetSequentialBlocks(row1, half1);
+                var candidates2 = GetSequentialBlocks(row2, half2);
+
+                foreach (var c1 in candidates1)
                 {
-                    var firstPart = currentRow.Skip(j).Take(firstRowSize).ToList();
-
-                    // בדיקה שהחלק הראשון רציף
-                    if (firstPart.Last().SeatNumber - firstPart.First().SeatNumber == firstRowSize - 1)
+                    foreach (var c2 in candidates2)
                     {
-                        // עכשיו נחפש בשורה הבאה רצף באותם מספרי כיסאות בדיוק
-                        var firstSeatNum = firstPart.First().SeatNumber;
-                        var secondPart = nextRow
-                            .Where(s => s.SeatNumber >= firstSeatNum && s.SeatNumber < firstSeatNum + secondRowSize)
-                            .ToList();
 
-                        if (secondPart.Count == secondRowSize &&
-                            (secondPart.Count == 1 || secondPart.Last().SeatNumber - secondPart.First().SeatNumber == secondRowSize - 1))
+                        var combined = c1.Concat(c2).ToList();
+
+                        // 🎯 מרכז של כל חלק
+                        double midC1 = (c1.First().SeatNumber + c1.Last().SeatNumber) / 2.0;
+                        double midC2 = (c2.First().SeatNumber + c2.Last().SeatNumber) / 2.0;
+
+                        // 🎯 מרכז כולל
+                        double combinedMiddle = (midC1 + midC2) / 2.0;
+
+                        // 🎯 מרחק מהמרכז האמיתי של השורה
+                        double centerDistance = Math.Abs(combinedMiddle - rowMiddle);
+
+                        // 🔹 נרמול מרחק מהמרכז
+                        double maxDistance = rowMiddle;
+                        double normalizedCenter = centerDistance / maxDistance;
+
+                        // 🔹 נרמול מיקום שורה (קדימה = טוב)
+                        double normalizedRow = (double)rows[i].Key / totalRows;
+                        var score = 0.0;
+                        if (normalizedCenter < 0.2)
                         {
-                            return firstPart.Concat(secondPart).ToList();
+                            score = normalizedRow; // רק שורה קובעת
+                        }
+                        else
+                        {
+                            score = normalizedRow * 0.7 + normalizedCenter * 0.3;
+                        }
+                        if (score < bestScore)
+                        {
+                            bestScore = score;
+                            bestCandidate = combined;
                         }
                     }
                 }
             }
-            return null; // לא נמצא בלוק זוגי צמוד
+
+            return bestCandidate;
+        }
+        private List<List<HallSeat>> GetSequentialBlocks(List<HallSeat> seats, int count)
+        {
+            var result = new List<List<HallSeat>>();
+
+            for (int i = 0; i <= seats.Count - count; i++)
+            {
+                var candidate = seats.Skip(i).Take(count).ToList();
+
+                if (candidate.Last().SeatNumber - candidate.First().SeatNumber == count - 1)
+                {
+                    result.Add(candidate);
+                }
+            }
+
+            return result;
         }
     }
 }

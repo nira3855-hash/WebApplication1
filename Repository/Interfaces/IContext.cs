@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Repository.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Repository.Interfaces
 {
@@ -16,5 +17,6 @@ namespace Repository.Interfaces
         DbSet<OrderDetail> OrderDetails { get; }
 
         Task SaveChangesAsync();
+        DatabaseFacade Database { get; }
     }
 }

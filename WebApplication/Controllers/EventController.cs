@@ -173,7 +173,7 @@ namespace WebApplication1.Controllers
         // GET api/Event/search?term=concert
         [HttpGet("search")]
         [Authorize(Roles = "0,1")]
-        public async Task<List<Event>> Search([FromQuery] string term)
+        public async Task<List<Event>> Search([FromBody] string term)
         {
             // מחפש אירועים לפי מחרוזת חיפוש
             return await events.SearchEventsAsync(term);
@@ -181,10 +181,17 @@ namespace WebApplication1.Controllers
 
         // GET api/Event/location?loc=TelAviv
         [HttpGet("location")]
-        public async Task<List<Event>> GetByLocation([FromQuery] string loc)
+        public async Task<List<Event>> GetByLocation([FromBody] string loc)
         {
             // מחזיר אירועים לפי מיקום
             return await events.GetEventsByLocationAsync(loc);
+        }
+        // POST api/Event/getBestSeats
+        [HttpPost("getBestSeats")]
+        public async Task<List<HallSeatDto>> GetBestSeats([FromBody] BestSeatsForEvent dto )
+        {
+            //מחזיר מושבים טובים באירוע
+            return await events.FindBestSeatsAsync(dto);
         }
 
         // GET api/Event/hall/5

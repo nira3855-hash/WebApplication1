@@ -22,7 +22,7 @@ namespace Service.Interface
 
         // מעדכן אירוע קיים לפי ID
         Task UpdateEventAsync(int id, EventDto item);
-
+            //מ
         // מחזיר את כל האירועים של מפיק מסוים
         Task<List<Event>> GetEventsByProducerIdAsync(int producerId);
 
@@ -41,6 +41,7 @@ namespace Service.Interface
         // מחזיר אירועים לפי אולם
         Task<List<Event>> GetEventsByHallIdAsync(int hallId);
 
-        // private ValidateEvent לא צריך להיות כאן
+        //מביאה את המקומות הכי טובים עבור כמות כרטיסים והעדפה באירוע מסוים
+        Task<List<HallSeatDto>> FindBestSeatsAsync(BestSeatsForEvent dto);
     }
 }

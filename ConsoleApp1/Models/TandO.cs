@@ -31,9 +31,9 @@ namespace ConsoleApp1.Models
             // סמינר 
             //optionsBuilder.UseSqlServer("server=sql;database=TandO;trusted_connection=true;TrustServerCertificate=True");
             // תמר
-            //optionsBuilder.UseSqlServer("server=TAMARCOMPUTER\\MSSQLSERVER01;database=TandO;trusted_connection=true;TrustServerCertificate=True");
+            optionsBuilder.UseSqlServer("server=TAMARCOMPUTER\\MSSQLSERVER01;database=TandO;trusted_connection=true;TrustServerCertificate=True");
             // אור חן
-            optionsBuilder.UseSqlServer("server=DESKTOP-9R4N6KE\\SQLEXPRESS01;database=TandO;trusted_connection=true;TrustServerCertificate=True");
+           // optionsBuilder.UseSqlServer("server=DESKTOP-9R4N6KE\\SQLEXPRESS01;database=TandO;trusted_connection=true;TrustServerCertificate=True");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -47,7 +47,15 @@ namespace ConsoleApp1.Models
             modelBuilder.Entity<HallSeat>().ToTable("HallSeat");
             modelBuilder.Entity<Hall>().ToTable("Hall");
             modelBuilder.Entity<OrderDetail>().ToTable("OrderDetail");
+            modelBuilder.Entity<OrderDetail>()
+             .HasOne(o => o.Event)
+               .WithMany()
+               .HasForeignKey(o => o.EventID);
 
+            modelBuilder.Entity<OrderDetail>()
+                .HasOne(o => o.HallSeat)
+                .WithMany()
+                .HasForeignKey(o => o.HallSeatID);
             // אינדקס ייחודי להזמנות
             modelBuilder.Entity<OrderDetail>()
                 .HasIndex(o => new { o.EventID, o.HallSeatID })
