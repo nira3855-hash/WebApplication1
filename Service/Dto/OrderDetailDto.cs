@@ -12,6 +12,9 @@ namespace Service.Dto
         public OrderStatus Status { get; set; }
         public double PriceAtPurchase { get; set; }
         public DateTime SelectAt { get; set; }
+        public EventDto Event { get; set; }
+        public HallSeatDto HallSeat { get; set; }
+
     }
 
 }

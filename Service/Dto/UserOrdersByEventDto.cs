@@ -10,6 +10,6 @@ namespace Service.Dto
     public class UserOrdersByEventDto
     {
       public Event Event { get; set; }
-        public List<HallSeatDto> Seats { get; set; }
+        public List<OrderDetailDto> Seats { get; set; }
     }
 }
