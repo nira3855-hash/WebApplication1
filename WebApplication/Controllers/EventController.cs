@@ -85,53 +85,64 @@ namespace WebApplication1.Controllers
 
         // PUT api/Event/5
         [HttpPut("{id}")]
-        //[Authorize(Roles = "1")]
+        [Authorize(Roles = "1")]
         public async Task<IActionResult> Put(int id, [FromForm] EventDto value)
         {
-            // כאן כדאי להוסיף את אותה לוגיקת שמירת תמונה שיש ב-Post
-            // כדי שאם המשתמש העלה תמונה חדשה בעריכה, היא תישמר ב-wwwroot
+            // 1. בדיקה אם הועלה קובץ חדש
             if (value.FileImage != null)
             {
-                // ... לוגיקת שמירת הקובץ (כמו ב-Post) ...
-                // value.ImageUrl = "/images/" + fileName;
+                // יצירת שם ייחודי לקובץ כדי למנוע דריסת קבצים בשם זהה
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(value.FileImage.FileName);
+
+                // נתיב לתיקיית images בתוך wwwroot
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", fileName);
+
+                // שמירת הקובץ פיזית בשרת
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await value.FileImage.CopyToAsync(stream);
+                }
+
+                // עדכון ה-URL שיישמר במסד הנתונים
+                value.ImageUrl = "/images/" + fileName;
             }
+
             try
             {
-                // מעדכן אירוע קיים (אסינכרוני)
+                // 2. שליחה לעדכון ב-Service
                 await events.UpdateEventAsync(id, value);
-            }
-            catch (Exception)
-            {
-                return NotFound(new
-                {
-                    ErrorCode = 404,
-                    Message = $"Event with ID {id} was not found."
-                });
-            }
 
-            // רק אם נמצא ועודכן, מחזירים Ok
-            return Ok();
+                // מחזירים את האובייקט המעודכן כדי שה-Frontend יוכל להציג אותו מיד
+                return Ok(value);
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
         }
 
-        // DELETE api/Event/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "1")]
+        [Authorize(Roles = "1")] // מפיק
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                // מוחק אירוע לפי ID (אסינכרוני)
                 await events.DeleteEventAsync(id);
+                return Ok(new { Message = "האירוע נמחק בהצלחה." });
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                // מחזירים 400 כדי שה-Frontend יבין שזו חסימה לוגית
+                return BadRequest(new { Message = ex.Message });
             }
             catch (Exception)
             {
-                return NotFound(new
-                {
-                    ErrorCode = 404,
-                    Message = $"Event with ID {id} was not found."
-                });
+                return StatusCode(500, "שגיאה פנימית בשרת.");
             }
-            return Ok();
         }
 
         // GET api/Event/producer/5

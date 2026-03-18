@@ -45,20 +45,25 @@ namespace Repository.Repositories
 
         public async Task<Event> UpdateItemAsync(int id, Event item)
         {
-            var Event = await GetByIdAsync(id);
-            if (Event != null)
+            var existingEvent = await GetByIdAsync(id);
+            if (existingEvent != null)
             {
-                Event.ProducerID = item.ProducerID;
-                Event.Producer = item.Producer;
-                Event.Title = item.Title;
-                Event.EventDate = item.EventDate;
-                Event.HallID = item.HallID;
-                Event.BasePrice = item.BasePrice;
-                Event.ImageUrl = item.ImageUrl;
+                existingEvent.Title = item.Title;
+                existingEvent.EventDate = item.EventDate;
+                existingEvent.HallID = item.HallID;
+                existingEvent.BasePrice = item.BasePrice;
+                existingEvent.Location = item.Location; // ודאי שגם מיקום מעודכן
+                existingEvent.Describe = item.Describe;
+
+                // עדכון תמונה רק אם נשלחה תמונה חדשה
+                if (!string.IsNullOrEmpty(item.ImageUrl))
+                {
+                    existingEvent.ImageUrl = item.ImageUrl;
+                }
 
                 await _context.SaveChangesAsync();
             }
-            return Event;
+            return existingEvent;
         }
 
         public async Task<List<Event>> GetByProducerIdAsync(int producerId)
