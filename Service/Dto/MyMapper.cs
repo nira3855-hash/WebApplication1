@@ -20,6 +20,7 @@ namespace Service.Dto
                 //.ForMember(dest => dest.TotalTickets,
                 //           opt => opt.MapFrom(src => src.Hall != null ? src.Hall.numOfSeats : 0));
             CreateMap<EventDto, Event>();
+            CreateMap<Event, ProducerEventDto>().ReverseMap();
 
             CreateMap<UserLogin, User>();
             CreateMap<User, UserLogin>();

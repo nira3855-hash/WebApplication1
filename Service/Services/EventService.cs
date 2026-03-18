@@ -45,10 +45,22 @@ namespace Service.Services
 
         public async Task DeleteEventAsync(int id)
         {
+           
+            // 1. בדיקה אם האירוע קיים
             var existingEvent = await eventRepository.GetByIdAsync(id);
             if (existingEvent == null)
                 throw new ArgumentException("האירוע לא קיים.");
 
+            // 2. בדיקה אם יש הזמנות לאירוע הזה (כוללReserved ו-Sold)
+            var orders = await orderDetailRepository.GetByEventIdAsync(id);
+
+            // אם הרשימה לא ריקה - סימן שיש כרטיסים (בסל או שנקנו)
+            if (orders != null && orders.Any())
+            {
+                throw new InvalidOperationException("לא ניתן למחוק את האירוע כיוון שישנן הזמנות פעילות או כרטיסים שנרכשו.");
+            }
+
+            // 3. אם הכל תקין - מוחקים
             await eventRepository.DeleteItemAsync(id);
         }
 
@@ -77,13 +89,23 @@ namespace Service.Services
             await eventRepository.UpdateItemAsync(id, mapper.Map<EventDto, Event>(item));
         }
 
-        public async Task<List<Event>> GetEventsByProducerIdAsync(int producerId)
+        public async Task<List<ProducerEventDto>> GetEventsByProducerAsync(int producerId)
         {
-            var producer = await producerRepository.GetByIdAsync(producerId);
-            if (producer == null)
-                throw new ArgumentException("המפיק לא קיים.");
-            var producerEvents = await eventRepository.GetByProducerIdAsync(producerId);
-            return await eventRepository.GetByProducerIdAsync(producerId);
+            // 1. שליפת האירועים מה-DB
+            var eventsList = await eventRepository.GetByProducerIdAsync(producerId);
+
+            // 2. מיפוי ל-DTO החדש (היורש)
+            var dtos = mapper.Map<List<Event>, List<ProducerEventDto>>(eventsList);
+
+            // 3. מילוי נתוני המכירות לכל אירוע
+            foreach (var dto in dtos)
+            {
+                var orders = await orderDetailRepository.GetByEventIdAsync(dto.Id);
+                // סופרים רק הזמנות שאינן מבוטלות (Sold או Reserved)
+                dto.TicketsSold = orders.Count(o => o.Status != OrderStatus.Cancelled);
+            }
+
+            return dtos;
         }
 
         public async Task<List<Event>> GetEventsByDateAsync(DateTime date)
